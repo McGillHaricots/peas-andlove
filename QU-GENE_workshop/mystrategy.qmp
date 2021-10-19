@@ -1,0 +1,61 @@
+!***************************QMP file for QuLinePlus*****************************
+
+!*Information for composite traits derived from simple traits in the GES file**
+!Number of derived composite traits and numbers of simple traits in each
+ 0   
+
+!No.    : the number for each composite trait, going as 101, 102, 103, etc.
+!Type  1: Addition of simple traits, 
+!        Y=a1*Y1+...+an*Yn (base index), ai is the weight
+!      2: Multiplication of simple traits, Y=a1Y1*...*anYn (multiplicative index)
+!      3: Selection index (optimum index), I=b'X, b=P^(-1)*G*a, P is phenotypic 
+!         covariances among traits, G is genetic covariances, calculated from 
+!         genotypic values. No markers can be included in this composite traits.
+!      4: Index for marker assisted selection (MAS), including all the markers and
+!         one trait. I=bY*y+bM*m, y is the phemotypic value, m is the marker score
+!         from regression analysis. bY=(VG-VM)/(VP-VM), bM=(VP-VG)/(VP-VM), VG is 
+!         the genetic variance, VM is the variance due to marker scores, VP is the
+!         phenotypic variance. VG is calculated from genetic values.
+!      5: Index for marker assisted selection (MAS), including all the markers
+!         and one trait. I=a1*y+a2*m, y is the phemotypic value, m is the marker
+!         score from regression analysis.
+!WTraits: which simple traits are used to define the composite trait.
+!Weights: weight for each simple trait
+!No.   Type  WTraits     Weights
+
+!*************General information for the simulation experiment****************
+!See below for notes
+!NumStr NumRun NumCyc NumCro CBUpdate OutGES OutPOP OutHIS OutROG OutCOE OutVar Cross   RMtimes PopSize CSV QTL NumPopulation
+1       10     5      100    0        1      1      0      0      0      1      random  0       0       1   0   1
+
+!***********Information for selection strategies to be simulated***************
+!StrategyNumber StrategyName  NumGenerations
+1               MASS          8
+
+1 0    CB clone bulk 1 10 1 1
+                0
+                0
+1 0    F1 singlecross superbulk 1 50 1 1
+                0
+                0
+1 0    F2 self bulk 1 500 1 1
+                0
+                0   
+1 0    F3 self bulk 1 500 1 1
+                0
+                0
+1 0    F4 self bulk 1 500 1 1
+                0
+                0
+1 0    F5 self bulk 1 500 1 1
+                0
+                1 1 T 0.2
+1 0    F6(PYT) self bulk 3 20 2 3 3
+                0
+                1 1 T 0.2
+1 0    F7(PYT) self bulk 3 20 3 3 3 3
+                0
+                1 1 T 0.2
+1 0    F8(AYT) self superbulk 3 20 4 3 3 3 3
+                0
+                1 1 T 0.2
