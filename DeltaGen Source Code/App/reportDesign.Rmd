@@ -1,0 +1,23 @@
+---
+title: "Output Report from Shiny Application: Design of experiments in agriculture"
+author: "Dongwen Luo and Dr Zulfi Jahufer"
+---
+
+# Design result:
+
+## Design structure:
+```{r designstr, echo=FALSE}
+print(designout$designname)
+str(designout$designdf)
+```
+# Design layout
+```{r designlayout, fig.height=7, fig.width=7,  echo=FALSE}
+suppressMessages(print(designout$layoutplot))
+```
+# ANOVA of the design
+```{r designanova, echo=FALSE}
+print(designout$designanovan)
+```
+
+
+

@@ -1,0 +1,109 @@
+---
+title: "DeltaGen Analysis Output"
+---
+
+## Plot output
+
+```{r plot_data, echo=FALSE, fig.height=7, fig.width=7}
+pltNames <- sort(names(r_dataplot)[grepl("([0-9]+)$", names(r_dataplot), ignore.case = T)])
+for (i in pltNames) {
+  cat(paste0("\n\n", i, "\n\n"))
+  print(r_dataplot[[i]])
+}
+```
+
+## Modelling Output
+
+### Data for Modelling
+```{r modeldat, echo=FALSE}
+str(rslt$modeldata)
+```
+### Model
+
+* Summary:
+```{r modelsummary, echo=FALSE}
+try(print(rslt$summary), TRUE)
+```
+* ANOVA:
+```{r modelanova, echo=FALSE}
+print(rslt$anova)
+```
+* Variance Components:
+```{r varcomp, echo=FALSE}
+try(print(rslt$varcomp), TRUE)
+```
+* Main Trait Line Mean Heritability:
+```{r heritability1, echo=FALSE}
+# if (!is.null(rslt$Heritability)) print(rslt$Heritability)
+ # cat(paste("\nLine Mean Heritability of trait ", input$modelresponse1, ": ", rslt$HeritabilityMod, " (s.e. ", round(attr(rslt$HeritabilityMod, "Std.error"),4), ")\n\n", sep=""))
+ 
+   if (!is.null(rslt$HeritabilityMod) && input$CaHeritability) {
+    if (input$bredingtype=="selfP" && input$selfP_early && !input$ckSecTrait)  cat(paste("\n\nLine Mean Generalized Heritability (modified Cullis, 2006) of trait ", input$modelresponse1, ": ", round(rslt$HeritabilityMod, 4), sep="")) 
+    else if (input$bredingtype== "selfP" && !input$ckSecTrait)  cat(paste("\n\nLine Mean Heritability of trait ", input$modelresponse1, ": ", round(rslt$HeritabilityMod, 4), " (s.e. ", round(attr(rslt$HeritabilityMod, "Std.error"),4), ") at ", input$selfP_F, " generation of line derivation.\n\n", sep="")) 
+    else cat(paste("\n\nLine Mean Heritability of trait ", input$modelresponse1, ": ", round(rslt$HeritabilityMod, 4), " (s.e. ", round(attr(rslt$HeritabilityMod, "Std.error"),4), ")\n\n", sep="")) 
+  }
+  
+```
+* Second trait Heritability:
+```{r heritability2, echo=FALSE}
+if (all(!is.null(rslt$Heritability2), !is.null(rslt$manovaform), !is.null(input$modelresponse1), !is.null(input$modelresponse2), !is.null(rslt$r_g))) {
+   cat(paste("Line Mean Heritability of trait ", input$modelresponse2, ": ", round(rslt$Heritability2, 4), ".\n\n", sep="")) 
+   cat(paste("The estimated genetic correlation between traits ",  input$modelresponse1, " and ", input$modelresponse2, " is ", round(rslt$r_g, 2), ".\n\n", sep=""))	
+}
+```
+* BLUP Output:
+```{r blup, echo=FALSE}
+print(rslt$ranefout)
+```
+* BLUE Output:
+```{r blue, echo=FALSE}
+print(rslt$blueOut)
+```
+## Breeding Strategies and Simulation
+```{r simtable, echo=FALSE}
+print(rslt$lmsimdfformat)
+```
+## Multivariate Analysis
+```{r pcaplot, fig.height=7, fig.width=7, echo=FALSE} 
+print(rslt$pcaplot)
+``` 
+```{r matrixplot, fig.height=7, fig.width=7, echo=FALSE} 
+  if (!is.null(input$multiresponse) && length(input$multiresponse)>2) {
+    if (input$colgrp=="NULL") pairs.panels(rslt$modeldata[, input$multiresponse], pch=21)
+    else pairs.panels(rslt$modeldata[, input$multiresponse], pch=21, bg=colors_pc[rslt$modeldata[, input$colgrp]])      
+  }
+``` 
+```{r manovaout, echo=FALSE}
+print(rslt$manovaout)
+```
+```{r ISsummary, echo=FALSE}
+if (all(!is.null(rslt$Pinv), !is.null(rslt$Amatrix), !is.null(rslt$BLUPSIout))) {
+  cat("Inverse of phenotypic variance-covariance matrix:\n\n")
+  print(rslt$Pinv)
+  cat(paste("\nThe additive genetic variance-covariance matrix:\n\n", sep=""))	
+  print(rslt$Amatrix)
+  cat("\nSmith-Hazel selection index:\n\n")
+  print(rslt$coefSI)  
+  cat("\nThe genetic worth (I) of an individual:\n\n")
+  print(rslt$BLUPSIout) 
+  cat("\nPredicted Gains of Individual Traits:\n\n")
+  print(rslt$deltaG) 
+}
+```
+## Pattern Analysis
+```{r PatternSsummary, echo=FALSE}
+  if (is.data.frame(rslt$groupTBM)) {
+    cat("\nCluster mean and sd for each variable:\n\n")	
+    print(rslt$groupTBM)    					   
+  }	
+```
+
+```{r cluster_meanPlot, fig.height=5, fig.width=8, echo=FALSE}
+  cat("\nCluster means plot:\n\n")	
+  if (inherits( rslt$cluster_meanPlotOutN, "ggplot")) print(rslt$cluster_meanPlotOutN)			 
+```
+
+```{r mpatternbiplotOut, fig.height=7, fig.width=7, echo=FALSE}
+  cat("\nBiplot of Pattern Analysis:\n\n")	
+  if (inherits(rslt$mpatternbiplotOut[[3]], "ggplot")) print(rslt$mpatternbiplotOut[[3]])			 
+```
