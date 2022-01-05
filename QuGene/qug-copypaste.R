@@ -1,4 +1,4 @@
-folder="C:/Users/vhvlo/OneDrive/Documents/JennyLin/QU-GENE-Workshop"
+folder="C:/Users/vhvlo/OneDrive/Documents/JennyLin/QU-GENE-Workshop"   ###change this to your working directory
 setwd(folder)
 library(openxlsx)
 source("QUGENE_UI_v4.r")
