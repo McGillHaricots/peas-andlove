@@ -32,3 +32,4 @@
     - Excel template file for the qug
 
 6) Run the code provided in this folder in the proper numeric order
+7) Once you have your marker effects, copy them into the Excel template file. This time, you create a trait called GS and all your markers should go into the LocusEffects sheet. The MarkerEffects sheet is left blank.
