@@ -7,11 +7,8 @@
         * The map contains all markers and QTLs
         * The locus effects only contains QTLs
         * The marker effects only contains markers 
-1. Save each sheet individually as a .csv file 
-    * Make sure to delete content in unneeded cells (hold ctrl+shift+rightarrow/downarrow) and right click to delete
 1. Open the copy_paste file
-1. Open R and change the working directory 
-1. Make sure csv file names match up with the ones in the copy_paste file 
+1. Open the R console and change the working directory 
 1. Run the code from the copy_past file in R. This should generate a .qug file 
 
 ## Creating a .qmp file
