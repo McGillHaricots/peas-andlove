@@ -6,6 +6,9 @@ import simuPOP as sim
 
 pop = sim.Population(size=[333]*3, ploidy=2, loci=1052, infoFields=('migrate_to', 'fitness'))
 
+import random
+sim.initGenotype(pop, freq=lambda: random.random())
+
 ##evolve the population ##
 
 pop.evolve(
@@ -14,7 +17,7 @@ pop.evolve(
         sim.MapSelector(loci=0, fitness={(0,0):1, (0,1):0.97, (1,1):0.97}), ##selection##
         sim.Migrator(rate=[[0,0.1,0.1],[0,0,0.1],[0,0.1,0]]) ##migration##
         ],
-    matingScheme=sim.SelfMating(ops=[sim.Recombinator(rates=0.1)]), ##selfing with recombination##
+    matingScheme=sim.SelfMating(ops=[sim.Recombinator(rates=0.1),sim.SelfingGenoTransmitter()]), ##selfing with recombination##
     postOps=[
         sim.Stat(alleleFreq=0, step=10), ##selection##
         sim.PyEval("'Gen:%3d' % gen", reps=0, step=10), ##selection##
