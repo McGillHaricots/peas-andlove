@@ -1,0 +1,23 @@
+##training testing partition
+
+train_index <- sample(1:nrow(data), 0.9 * nrow(data))
+SR_train <- data[train_index, ]
+SR_test <- data[-train_index, ]
+
+##use e1071 to implement SVM
+install.packages("e1071")
+library(e1071)
+
+##fit model, predict category on all markers
+fit = svm(factor(SR_train$cats) ~., data=SR_train, scale = FALSE, kernel="radial", cost=5)
+
+##create grid of marker data in test set
+xgrid <- SR_test[,-1]
+
+##create y grid to hold predictions based on xgrid and above model fit
+ygrid <- predict(fit, xgrid)
+
+actual <- as.numeric(SR_test$cats)
+predictions <- as.numeric(ygrid)
+accuracy <- as.data.frame(cbind(actual, predictions))
+cor(accuracy$actual, accuracy$predictions, method="pearson")
