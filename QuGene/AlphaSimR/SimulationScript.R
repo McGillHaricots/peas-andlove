@@ -6,10 +6,8 @@ library(writexl)
 
 ## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
 
-
 genotypes <- as.data.frame(read_xlsx("SRgeno_1_2.xlsx"))
 genotypes <- genotypes[1:2000,]
-
 
 ## must be in 0 1 coding. write and reload new excel file to avoid class incompatibility later ##
 
@@ -115,50 +113,120 @@ F1 = randCross(Parents, 200)
 
 F2 = self(F1, nProgeny = 500) 
 
-F2 = setEBV(source(PredictionModel.R)) 
+##Run GS model to get EBVs##
+
+    y = pheno(F2) ## pull phenotypes
+    M = pullSnpGeno(F2) ## pull genotypes
+    M = M-1 ## 0 1 2 to -1 0 1
+    G = A.mat(M) ## create GRM
+    ans = source(SolverCode.R) ##run the model
+    EBV = pullEBVs ##set the EBVs from the model
+    cor(EBV, gv(F2)) ##check pred. accuracy
+
+##Add external EBVs to pop  
+    
+F2@ebv = as.matrix(EBV)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 20, use="gv") 
+F3 = selectFam(F2, 20, use="ebv") 
 
 F3 = self(F3, nProgeny = 200) 
 
-F3 = setEBV(source(PredictionModel.R))
+##Run GS model to get EBVs##
+
+  y = pheno(F3) ## pull phenotypes
+  M = pullSnpGeno(F3) ## pull genotypes
+  M = M-1 ## 0 1 2 to -1 0 1
+  G = A.mat(M) ## create GRM
+  ans = source(SolverCode.R) ##run the model
+  EBV = pullEBVs ##set the EBVs from the model
+  cor(EBV, gv(F3)) ##check pred. accuracy
+
+##Add external EBVs to pop    
+  
+F3@ebv = as.matrix(EBV)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 10, use="gv") 
+F4 = selectFam(F3, 10, use="ebv") 
 
 F4 = self(F4, nProgeny = 200) 
 
-F4 = setEBV(source(PredictionModel.R)) 
+##Run GS model to get EBVs##
+
+  y = pheno(F4) ## pull phenotypes
+  M = pullSnpGeno(F4) ## pull genotypes
+  M = M-1 ## 0 1 2 to -1 0 1
+  G = A.mat(M) ## create GRM
+  ans = source(SolverCode.R) ##run the model
+  EBV = pullEBVs ##set the EBVs from the model
+  cor(EBV, gv(F4)) ##check pred. accuracy
+
+##Add external EBVs to pop   
+  
+F4@ebv = as.matrix(EBV)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 5, use="gv")
+F5 = selectFam(F4, 5, use="ebv")
 
 F5 = self(F5, nProgeny=100) 
 
-F5 = setEBV(source(PredictionModel.R)) 
+##Run GS model to get EBVs##
+
+  y = pheno(F5) ## pull phenotypes
+  M = pullSnpGeno(F5) ## pull genotypes
+  M = M-1 ## 0 1 2 to -1 0 1
+  G = A.mat(M) ## create GRM
+  ans = source(SolverCode.R) ##run the model
+  EBV = pullEBVs ##set the EBVs from the model
+  cor(EBV, gv(F5)) ##check pred. accuracy
+
+##Add external EBVs to pop    
+
+F5@ebv = as.matrix(EBV)
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectInd(F5, 20) 
+PYT = selectInd(F5, 20, use="ebv") 
 
 PYT = self(PYT, nProgeny=60) 
 
-PYT = setEBV(source(PredictionModel.R))
+##Run GS model to get EBVs##
+
+  y = pheno(PYT) ## pull phenotypes
+  M = pullSnpGeno(PYT) ## pull genotypes
+  M = M-1 ## 0 1 2 to -1 0 1
+  G = A.mat(M) ## create GRM
+  ans = source(SolverCode.R) ##run the model
+  EBV = pullEBVs ##set the EBVs from the model
+  cor(EBV, gv(PYT)) ##check pred. accuracy
+
+##Add external EBVs to pop    
+PYT@ebv = as.matrix(EBV)
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="gv") 
+AYT = selectInd(PYT,  20, use="ebvv") 
 
 AYT = self(AYT, nProgeny=60) 
 
-AYT = setEBV(source(PredictionModel.R))
+##Run GS model to get EBVs##
+
+  y = pheno(AYT) ## pull phenotypes
+  M = pullSnpGeno(AYT) ## pull genotypes
+  M = M-1 ## 0 1 2 to -1 0 1
+  G = A.mat(M) ## create GRM
+  ans = source(SolverCode.R) ##run the model
+  EBV = pullEBVs ##set the EBVs from the model
+  cor(EBV, gv(AYT)) ##check pred. accuracy
+
+##Add external EBVs to pop    
+AYT@ebv = as.matrix(EBV)
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1)
+Variety = selectInd(AYT, 1, use="ebv")
 
 ## pull genetic value for each generation ##
 
@@ -175,4 +243,6 @@ gv = list(Parents = gv(Parents),
 ##boxplot to view gain##
 
 boxplot(gv)
+
+
 
