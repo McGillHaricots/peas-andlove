@@ -86,9 +86,13 @@ chr11geno = as.matrix(chr11geno,nrow=2000,ncol=ncol(chr11geno))
 haplotypes = list(chr1geno,chr2geno, chr3geno, chr4geno,chr5geno,chr6geno,chr7geno,chr8geno,chr9geno,chr10geno,chr11geno)
 
 ## confirm geno and map are the same length ##
+length(genMap)
+length(haplotypes)
 
+########### SIMULATION STARTS HERE #########################
 
 ## establish founder population ##
+
 founderPop = newMapPop(genMap, 
                        haplotypes, 
                        inbred = FALSE, 
@@ -111,17 +115,19 @@ F1 = randCross(Parents, 25)
 
 F2 = self(F1, nProgeny = 50) 
 
-##Run GS model to get EBVs##
+##Build GS model using F2##
 
 ans = RRBLUP(F2, simParam=SP)
+
+## Set EBVs using model##
 F2=setEBV(F2,ans, simParam = SP)
 cor1 = cor(gv(F2), ebv(F2))
 
-## select top individuals to form F3 ##
+## select top families to form F3 ##
 
 F3 = selectFam(F2, 10, use="ebv") 
 
-##carry out rrBLUP)
+##set EBV using BLUP model##
 F3 = setEBV(F3, ans, simParam=SP)
 cor2 = cor(gv(F3),ebv(F3))
 
@@ -129,7 +135,7 @@ cor2 = cor(gv(F3),ebv(F3))
 
 F4 = selectFam(F3, 7, use="ebv") 
 
-##carry out rrBLUP)
+##set EBV using BLUP model##
 F4 = setEBV(F4, ans,simParam=SP)
 cor3= cor(gv(F4), ebv(F4))
 
@@ -138,16 +144,16 @@ cor3= cor(gv(F4), ebv(F4))
 F5 = selectFam(F4, 5, use="ebv")
 
 
-##carry out rrBLUP)
+##set EBV using BLUP model##
 F5 = setEBV(F5, ans, simParam=SP)
 cor4 = cor(gv(F5),ebv(F5))
 
-## select top families from F5 to form preliminary yield trial ##
+## select top individual from F5 to form preliminary yield trial ##
 
 PYT = selectInd(F5, 20, use="ebv") 
 
 
-##carry out rrBLUP)
+##set EBV using BLUP model##
 PYT = setEBV(PYT, ans, simParam=SP)
 cor5 = cor(gv(PYT),ebv(PYT))
 
@@ -156,7 +162,7 @@ cor5 = cor(gv(PYT),ebv(PYT))
 AYT = selectInd(PYT,  20, use="ebv") 
 
 
-##carry out rrBLUP)
+##set EBV using BLUP model##
 AYT = setEBV(AYT, ans, simParam=SP)
 cor6 = cor(gv(AYT),ebv(AYT))
 
@@ -166,17 +172,18 @@ Variety = selectInd(AYT, 1, use="ebv")
 ## pull genetic value for each generation ##
 
 gv = list(Parents = gv(Parents),
-          F1 = mean(gv(F1)),
-          F2 = mean(gv(F2)),
-          F3 = mean(gv(F3)),
-          F4 = mean(gv(F4)),
-          F5 = mean(gv(F5)),
-          PYT = mean(gv(PYT)),
-          AYT = mean(gv(AYT)),
-          Variety = mean(gv(Variety))
+          F1 = gv(F1),
+          F2 = gv(F2),
+          F3 = gv(F3),
+          F4 = gv(F4),
+          F5 = gv(F5),
+          PYT = gv(PYT),
+          AYT = gv(AYT),
+          Variety = gv(Variety))
 
 gv <- as.data.frame(gv)
 write.csv(gv, "gv_sy_sr_rrblup.csv")
 
+## list correlations to view model performance##
 cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
 write.csv(cor, "cor_sy_sr_ssblup.csv")
