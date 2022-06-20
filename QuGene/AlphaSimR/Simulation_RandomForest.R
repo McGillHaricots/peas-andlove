@@ -133,57 +133,161 @@ F2 = self(F1, nProgeny = 50)
 
   control <- trainControl(method='repeatedcv', number=3, repeats=3)
 
-  ans = train(as.factor(ID1) ~ ., 
+  ##build model##
+  
+  rf_fit = train(as.factor(ID1) ~ ., 
               data = SR_train, 
               method = "ranger",
               trControl=control)
   
-  F2=setEBV(F2,ans, simParam = SP)
+  #make predictions##
   
-  cor1 = cor(gv(F2), ebv(F2))
+  predictions <- predict(rf_fit, pop)
+  
+  #pull ebvs##
+  
+  EBV = predictions
+  
+  cor1 = cor(EBV, gv(F2))
+  
+  #set ebvs#
+  
+  f2@ebv= as.matrix(EBV)
 
 ## select top individuals to form F3 ##
 
 F3 = selectFam(F2, 10, use="ebv") 
 
-##carry out rrBLUP)
-F3 = setEBV(F3, ans, simParam=SP)
-cor2 = cor(gv(F3),ebv(F3))
+##RUN THE RF MODEL##
+
+set.seed(23489)
+pheno <- pheno(F3)
+geno <- pullSnpGeno(F3)
+pop <- cbind(pheno, geno)
+colnames(pop) <- paste("ID",1:551, sep="")
+
+#make predictions##
+
+predictions <- predict(rf_fit, pop)
+
+#pull ebvs##
+
+EBV = predictions
+
+cor1 = cor(EBV, gv(F3))
+
+#set ebvs#
+
+f3@ebv= as.matrix(EBV)
 
 ##select top families from F3 to form F4 ##
 
 F4 = selectFam(F3, 7, use="ebv") 
 
-##carry out rrBLUP)
-F4 = setEBV(F4, ans,simParam=SP)
-cor3= cor(gv(F4), ebv(F4))
+##RUN THE RF MODEL##
+
+set.seed(23489)
+pheno <- pheno(F4)
+geno <- pullSnpGeno(F4)
+pop <- cbind(pheno, geno)
+colnames(pop) <- paste("ID",1:551, sep="")
+
+#make predictions##
+
+predictions <- predict(rf_fit, pop)
+
+#pull ebvs##
+
+EBV = predictions
+
+cor1 = cor(EBV, gv(F4))
+
+#set ebvs#
+
+f4@ebv= as.matrix(EBV)
+
 
 ## select top families from F4 to form F5 ##
 
 F5 = selectFam(F4, 5, use="ebv")
 
 
-##carry out rrBLUP)
-F5 = setEBV(F5, ans, simParam=SP)
-cor4 = cor(gv(F5),ebv(F5))
+##RUN THE RF MODEL##
+
+set.seed(23489)
+pheno <- pheno(F5)
+geno <- pullSnpGeno(F5)
+pop <- cbind(pheno, geno)
+colnames(pop) <- paste("ID",1:551, sep="")
+
+#make predictions##
+
+predictions <- predict(rf_fit, pop)
+
+#pull ebvs##
+
+EBV = predictions
+
+cor1 = cor(EBV, gv(F5))
+
+#set ebvs#
+
+f5@ebv= as.matrix(EBV)
+
 
 ## select top families from F5 to form preliminary yield trial ##
 
 PYT = selectInd(F5, 20, use="ebv") 
 
 
-##carry out rrBLUP)
-PYT = setEBV(PYT, ans, simParam=SP)
-cor5 = cor(gv(PYT),ebv(PYT))
+##RUN THE RF MODEL##
+
+set.seed(23489)
+pheno <- pheno(PYT)
+geno <- pullSnpGeno(PYT)
+pop <- cbind(pheno, geno)
+colnames(pop) <- paste("ID",1:551, sep="")
+
+#make predictions##
+
+predictions <- predict(rf_fit, pop)
+
+#pull ebvs##
+
+EBV = predictions
+
+cor1 = cor(EBV, gv(PYT))
+
+#set ebvs#
+
+PYT@ebv= as.matrix(EBV)
 
 ## select top plants from PYT to form advanced yield trial ##
 
 AYT = selectInd(PYT,  20, use="ebv") 
 
 
-##carry out rrBLUP)
-AYT = setEBV(AYT, ans, simParam=SP)
-cor6 = cor(gv(AYT),ebv(AYT))
+##RUN THE RF MODEL##
+
+set.seed(23489)
+pheno <- pheno(AYT)
+geno <- pullSnpGeno(AYT)
+pop <- cbind(pheno, geno)
+colnames(pop) <- paste("ID",1:551, sep="")
+
+#make predictions##
+
+predictions <- predict(rf_fit, pop)
+
+#pull ebvs##
+
+EBV = predictions
+
+cor1 = cor(EBV, gv(AYT))
+
+#set ebvs#
+
+AYT@ebv= as.matrix(EBV)
 
 ## select top plants to form variety ##
 Variety = selectInd(AYT, 1, use="ebv")
@@ -201,7 +305,7 @@ gv = list(Parents = gv(Parents),
           Variety = gv(Variety))
 
 gv <- as.data.frame(gv)
-write.csv(gv, "gv_sy_sr_rrblup.csv")
+write.csv(gv, "gv_sy_sr_rf.csv")
 
 cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
-write.csv(cor, "cor_sy_sr_ssblup.csv")
+write.csv(cor, "cor_sy_sr_rf.csv")
