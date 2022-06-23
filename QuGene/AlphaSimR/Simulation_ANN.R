@@ -133,11 +133,17 @@ F2 = self(F1, nProgeny = 50)
           Y <- pheno(F2)
           Y <- as.matrix(Y)
           X = LG
+          
+          ## create data frame with geno and pheno data ##
+
+          phenotypes <- as.data.frame(Y)
+          genotypes <- as.data.frame(geno)
+          data <-cbind(phenotypes,genotypes)
 
           ## training testing partition using BMTME ##
 
-          pheno <- data.frame(GID=Y)
-          CrossV <- CV.KFold(pheno, DataSetID='GID')
+          data <- data.frame(GID=data)
+          CrossV <- CV.KFold(data, DataSetID='GID')
 
           ## one holdout CV ##
 
