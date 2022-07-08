@@ -91,7 +91,7 @@ chr11geno = as.matrix(chr11geno,nrow=2000,ncol=ncol(chr11geno))
 
 haplotypes = list(chr1geno,chr2geno, chr3geno, chr4geno,chr5geno,chr6geno,chr7geno,chr8geno,chr9geno,chr10geno,chr11geno)
 
-## confirm geno and map are the same length ##
+####### SIMULATION STARTS HERE #############
 
 
 ## establish founder population ##
@@ -120,29 +120,33 @@ F2 = self(F1, nProgeny = 50)
 ##Build GS model to get EBVs##
 
   set.seed(23489)
-  pheno <- pheno(F2)
-  geno <- pullSnpGeno(F2)
-  pop <- cbind(pheno, geno)
-  colnames(pop) <- paste("ID",1:551, sep="")
-  
-  ##note ID1 will be the phenotype, IDs 2-551 are genotypes##
+  pheno <- pheno(F1) #pull F1  phenotypes#
+  geno <- pullSnpGeno(F1) #pull F1 genotypes#
+  pop <- cbind(pheno, geno) #create data frame with pheno and geno data#
+  colnames(pop) <- paste("ID",1:551, sep="") # name columns, note ID1 will be the phenotype, IDs 2-551 are genotypes##
 
+  ### create a random training/testing partition ###
   train_index <- sample(1:nrow(pop), 0.9 * nrow(pop))
   SR_train <- pop[train_index, ]
   SR_test <- pop[-train_index, ]
 
+  ### define cross validation strategy ###
   control <- trainControl(method='repeatedcv', number=3, repeats=3)
 
   ##build model##
-  
-  rf_fit = train(as.factor(ID1) ~ ., 
+  rf_fit = train(as.factor(ID1) ~ ., #predict phenotype (ID1) using all other factors# 
               data = SR_train, 
               method = "ranger",
               trControl=control)
   
-  #make predictions##
+  #make predictions on F2 ##
   
-  predictions <- predict(rf_fit, pop)
+  pheno <- pheno(F2) #pull F2  phenotypes#
+  geno <- pullSnpGeno(F2) #pull F2 genotypes#
+  F2data <- cbind(pheno, geno) #create data frame with pheno and geno data#
+  colnames(pop) <- paste("ID",1:551, sep="") 
+  
+  predictions <- predict(rf_fit, F2data)
   
   #pull ebvs##
   
@@ -163,12 +167,12 @@ F3 = selectFam(F2, 10, use="ebv")
 set.seed(23489)
 pheno <- pheno(F3)
 geno <- pullSnpGeno(F3)
-pop <- cbind(pheno, geno)
+F3data <- cbind(pheno, geno)
 colnames(pop) <- paste("ID",1:551, sep="")
 
 #make predictions##
 
-predictions <- predict(rf_fit, pop)
+predictions <- predict(rf_fit, F3data)
 
 #pull ebvs##
 
@@ -189,12 +193,12 @@ F4 = selectFam(F3, 7, use="ebv")
 set.seed(23489)
 pheno <- pheno(F4)
 geno <- pullSnpGeno(F4)
-pop <- cbind(pheno, geno)
+F4data <- cbind(pheno, geno)
 colnames(pop) <- paste("ID",1:551, sep="")
 
 #make predictions##
 
-predictions <- predict(rf_fit, pop)
+predictions <- predict(rf_fit, F4data)
 
 #pull ebvs##
 
@@ -217,12 +221,12 @@ F5 = selectFam(F4, 5, use="ebv")
 set.seed(23489)
 pheno <- pheno(F5)
 geno <- pullSnpGeno(F5)
-pop <- cbind(pheno, geno)
+F5data <- cbind(pheno, geno)
 colnames(pop) <- paste("ID",1:551, sep="")
 
 #make predictions##
 
-predictions <- predict(rf_fit, pop)
+predictions <- predict(rf_fit, F5data)
 
 #pull ebvs##
 
@@ -245,12 +249,12 @@ PYT = selectInd(F5, 20, use="ebv")
 set.seed(23489)
 pheno <- pheno(PYT)
 geno <- pullSnpGeno(PYT)
-pop <- cbind(pheno, geno)
+PYTdata <- cbind(pheno, geno)
 colnames(pop) <- paste("ID",1:551, sep="")
 
 #make predictions##
 
-predictions <- predict(rf_fit, pop)
+predictions <- predict(rf_fit, PYTdata)
 
 #pull ebvs##
 
@@ -272,12 +276,12 @@ AYT = selectInd(PYT,  20, use="ebv")
 set.seed(23489)
 pheno <- pheno(AYT)
 geno <- pullSnpGeno(AYT)
-pop <- cbind(pheno, geno)
+AYTdata <- cbind(pheno, geno)
 colnames(pop) <- paste("ID",1:551, sep="")
 
 #make predictions##
 
-predictions <- predict(rf_fit, pop)
+predictions <- predict(rf_fit, AYTdata)
 
 #pull ebvs##
 
