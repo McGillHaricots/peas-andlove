@@ -115,7 +115,7 @@ F1 = randCross(Parents, 25)
 
 F2 = self(F1, nProgeny = 50) 
 
-##Build GS model using F2##
+##Build GS model using F1##
 
 ans = RRBLUP(F1, simParam=SP)
 
