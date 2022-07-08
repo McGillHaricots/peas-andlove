@@ -114,24 +114,23 @@ F1 = randCross(Parents, 25)
 
 F2 = self(F1, nProgeny = 50) 
 
-          ##Build GS model to get EBVs##
+          ##Build GS model using F1 as TRN to get EBVs##
 
           set.seed(23489)
-          pheno <- pheno(F2)
-          geno <- pullSnpGeno(F2)
+          pheno <- pheno(F1)
+          geno <- pullSnpGeno(F1)
           pop <- cbind(pheno, geno)
-          colnames(pop) <- paste("ID",1:551, sep="")
+          colnames(pop) <- paste("ID",1:551, sep="")  ##note ID1 will be the phenotype, IDs 2-551 are genotypes##
 
-          ##note ID1 will be the phenotype, IDs 2-551 are genotypes##
+          ##creater random TRN TST partition##
 
           train_index <- sample(1:nrow(pop), 0.9 * nrow(pop))
           SR_train <- data[train_index, ]
           SR_test <- data[-train_index, ]
 
-          ##build model##
 
-          ##fit model, predict category on all markers
-          fit = svm(factor(SR_train$cats) ~., pop=SR_train, scale = FALSE, kernel="radial", cost=5)
+          ##fit model, predict pheno on all markers
+          fit = svm(factor(SR_train$ID1) ~., pop=SR_train, scale = FALSE, kernel="radial", cost=5)
 
           ##create grid of marker data in test set
           xgrid <- pop[,-1]
@@ -140,14 +139,16 @@ F2 = self(F1, nProgeny = 50)
           ygrid <- predict(fit, xgrid)
 
           ## see how model performs ##
-          actual <- as.numeric(SR_test$cats)
+          actual <- as.numeric(SR_test$ID1)
           predictions <- as.numeric(ygrid)
           accuracy <- as.data.frame(cbind(actual, predictions))
           cor(accuracy$actual, accuracy$predictions, method="pearson")
 
 ##Use model to predict EBVs###
 
-predictions = predict(fit,geno)
+genoF2 <- pullSnpGeno(F2)
+
+predictions = predict(fit,genoF2)
 
 EBV = predictions
 
@@ -163,8 +164,8 @@ F3 = selectFam(F2, 10, use="ebv")
 
 ##RUN THE SVM MODEL##
 
-geno <- pullSnpGeno(F3)
-predictions = predict(fit,geno)
+genoF3 <- pullSnpGeno(F3)
+predictions = predict(fit,genoF3)
 
 EBV = predictions
 
@@ -181,8 +182,8 @@ F4 = selectFam(F3, 7, use="ebv")
 
 ##RUN THE SVM MODEL##
 
-geno <- pullSnpGeno(F4)
-predictions = predict(fit,geno)
+genoF4 <- pullSnpGeno(F4)
+predictions = predict(fit,genoF4)
 
 EBV = predictions
 
@@ -200,8 +201,8 @@ F5 = selectFam(F4, 5, use="ebv")
 
 ##RUN THE SVM MODEL##
 
-geno <- pullSnpGeno(F5)
-predictions = predict(fit,geno)
+genoF5 <- pullSnpGeno(F5)
+predictions = predict(fit,genoF5)
 
 EBV = predictions
 
@@ -219,8 +220,8 @@ PYT = selectInd(F5, 20, use="ebv")
 
 ##RUN THE SVM MODEL##
 
-geno <- pullSnpGeno(PYT)
-predictions = predict(fit,geno)
+genoPYT <- pullSnpGeno(PYT)
+predictions = predict(fit,genoPYT)
 
 EBV = predictions
 
@@ -238,8 +239,8 @@ AYT = selectInd(PYT,  20, use="ebv")
 
 ##RUN THE SVM MODEL##
 
-geno <- pullSnpGeno(AYT)
-predictions = predict(fit,geno)
+genoAYT <- pullSnpGeno(AYT)
+predictions = predict(fit,genoAYT)
 
 EBV = predictions
 
