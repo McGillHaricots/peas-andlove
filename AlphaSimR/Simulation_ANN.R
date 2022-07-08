@@ -95,8 +95,7 @@ chr11geno = as.matrix(chr11geno,nrow=2000,ncol=ncol(chr11geno))
 
 haplotypes = list(chr1geno,chr2geno, chr3geno, chr4geno,chr5geno,chr6geno,chr7geno,chr8geno,chr9geno,chr10geno,chr11geno)
 
-## confirm geno and map are the same length ##
-
+########## SIMULATION STARTS HERE ##########
 
 ## establish founder population ##
 founderPop = newMapPop(genMap, 
@@ -121,16 +120,16 @@ F1 = randCross(Parents, 25)
 
 F2 = self(F1, nProgeny = 50) 
 
-#BUILD ANN##
+#BUILD ANN using F1 as TP ##
 
           ## create GRM ##
 
-          geno <- pullSnpGeno(F2)
+          geno <- pullSnpGeno(F1)
           geno <- as.matrix(geno)
           GM <- tcrossprod(geno)/dim(geno)
           LG <- cholesky(GM)
 
-          Y <- pheno(F2)
+          Y <- pheno(F1)
           Y <- as.matrix(Y)
           X = LG
           
@@ -140,7 +139,7 @@ F2 = self(F1, nProgeny = 50)
           genotypes <- as.data.frame(geno)
           data <-cbind(phenotypes,genotypes)
 
-          ## training testing partition using BMTME ##
+          ## random training testing partition using BMTME ##
 
           data <- data.frame(GID=data)
           CrossV <- CV.KFold(data, DataSetID='GID')
@@ -162,7 +161,7 @@ F2 = self(F1, nProgeny = 50)
             model %>%
               layer_dense(units =N_Units, activation = "relu", input_shape = c(dim
                                                                                (X_trn)[2])) %>%
-              layer_dropout(rate = 0.0) %>%
+              layer_dropout(rate = 0.1) %>%
               layer_dense(units = 1, activation = "linear")
             model %>% compile(
               loss = "mse",
@@ -231,7 +230,12 @@ F2 = self(F1, nProgeny = 50)
 
 ## Use model to predict F2 EBV ##
 
-prediction = model_Final %>% predict(LG)
+          geno <- pullSnpGeno(F2)
+          geno <- as.matrix(geno)
+          GM <- tcrossprod(geno)/dim(geno)
+          LGF2 <- cholesky(GM)
+
+prediction = model_Final %>% predict(LGF2)
 EBV= prediction
 cor1=cor(EBV, gv(F2))
 F2@ebv = as.matrix(EBV)
@@ -245,8 +249,8 @@ F3 = selectFam(F2, 10, use="ebv")
 geno <- pullSnpGeno(F3)
 geno <- as.matrix(geno)
 GM <- tcrossprod(geno)/dim(geno)
-LG <- cholesky(GM)
-prediction = model_Final %>% predict(LG)
+LGF3 <- cholesky(GM)
+prediction = model_Final %>% predict(LGF3)
 EBV= prediction
 cor2=cor(EBV, gv(F3))
 F3@ebv = as.matrix(EBV)
@@ -260,8 +264,8 @@ F4 = selectFam(F3, 7, use="ebv")
 geno <- pullSnpGeno(F4)
 geno <- as.matrix(geno)
 GM <- tcrossprod(geno)/dim(geno)
-LG <- cholesky(GM)
-prediction = model_Final %>% predict(LG)
+LGF4 <- cholesky(GM)
+prediction = model_Final %>% predict(LGF4)
 EBV= prediction
 cor3=cor(EBV, gv(F4))
 F4@ebv = as.matrix(EBV)
@@ -276,8 +280,8 @@ F5 = selectFam(F4, 5, use="ebv")
 geno <- pullSnpGeno(F5)
 geno <- as.matrix(geno)
 GM <- tcrossprod(geno)/dim(geno)
-LG <- cholesky(GM)
-prediction = model_Final %>% predict(LG)
+LGF5 <- cholesky(GM)
+prediction = model_Final %>% predict(LGF5)
 EBV= prediction
 cor4=cor(EBV, gv(F5))
 F5@ebv = as.matrix(EBV)
@@ -292,8 +296,8 @@ PYT = selectInd(F5, 20, use="ebv")
 geno <- pullSnpGeno(PYT)
 geno <- as.matrix(geno)
 GM <- tcrossprod(geno)/dim(geno)
-LG <- cholesky(GM)
-prediction = model_Final %>% predict(LG)
+LGpyt <- cholesky(GM)
+prediction = model_Final %>% predict(LGpyt)
 EBV= prediction
 cor5=cor(EBV, gv(PYT))
 PYT@ebv = as.matrix(EBV)
@@ -308,8 +312,8 @@ AYT = selectInd(PYT,  20, use="ebv")
 geno <- pullSnpGeno(AYT)
 geno <- as.matrix(geno)
 GM <- tcrossprod(geno)/dim(geno)
-LG <- cholesky(GM)
-prediction = model_Final %>% predict(LG)
+LGayt <- cholesky(GM)
+prediction = model_Final %>% predict(LGayt)
 EBV= prediction
 cor6=cor(EBV, gv(AYT))
 AYT@ebv = as.matrix(EBV)
