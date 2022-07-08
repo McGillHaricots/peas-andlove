@@ -117,7 +117,7 @@ F2 = self(F1, nProgeny = 50)
 
 ##Build GS model using F2##
 
-ans = RRBLUP(F2, simParam=SP)
+ans = RRBLUP(F1, simParam=SP)
 
 ## Set EBVs using model##
 F2=setEBV(F2,ans, simParam = SP)
