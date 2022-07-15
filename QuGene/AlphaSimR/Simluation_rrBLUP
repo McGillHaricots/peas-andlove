@@ -125,7 +125,7 @@ cor1 = cor(gv(F2), ebv(F2))
 
 ## select top families to form F3 ##
 
-F3 = selectFam(F2, 10, use="ebv") 
+F3 = selectFam(F2, 10, use="ebv", selectTop=TRUE) 
 
 ##set EBV using BLUP model##
 F3 = setEBV(F3, ans, simParam=SP)
@@ -133,7 +133,7 @@ cor2 = cor(gv(F3),ebv(F3))
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 7, use="ebv") 
+F4 = selectFam(F3, 7, use="ebv", selectTop=TRUE) 
 
 ##set EBV using BLUP model##
 F4 = setEBV(F4, ans,simParam=SP)
@@ -141,7 +141,7 @@ cor3= cor(gv(F4), ebv(F4))
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 5, use="ebv")
+F5 = selectFam(F4, 5, use="ebv", selectTop=TRUE)
 
 
 ##set EBV using BLUP model##
@@ -150,7 +150,7 @@ cor4 = cor(gv(F5),ebv(F5))
 
 ## select top individual from F5 to form preliminary yield trial ##
 
-PYT = selectInd(F5, 20, use="ebv") 
+PYT = selectInd(F5, 20, use="ebv", selectTop=TRUE) 
 
 
 ##set EBV using BLUP model##
@@ -159,7 +159,7 @@ cor5 = cor(gv(PYT),ebv(PYT))
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv") 
+AYT = selectInd(PYT,  20, use="ebv", selectTop=TRUE) 
 
 
 ##set EBV using BLUP model##
@@ -167,7 +167,7 @@ AYT = setEBV(AYT, ans, simParam=SP)
 cor6 = cor(gv(AYT),ebv(AYT))
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1, use="ebv")
+Variety = selectInd(AYT, 1, use="ebv", selectTop=TRUE)
 
 ## pull genetic value for each generation ##
 
