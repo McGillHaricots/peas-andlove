@@ -109,11 +109,11 @@ SP$addSnpChip(50)
 ## generate parents and cross to form F1 ##
 
 Parents = newPop(founderPop)
-F1 = randCross(Parents, 200) 
+F1 = randCross(Parents, 50) 
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 200) 
+F2 = self(F1, nProgeny = 100) 
 
 ##build GS model using F2##
 
