@@ -109,15 +109,15 @@ SP$addSnpChip(50)
 ## generate parents and cross to form F1 ##
 
 Parents = newPop(founderPop)
-F1 = randCross(Parents, 25) 
+F1 = randCross(Parents, 200) 
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 50) 
+F2 = self(F1, nProgeny = 200) 
 
-##Build GS model using F1##
+##build GS model using F2##
 
-ans = RRBLUP(F1, simParam=SP)
+ans = RRBLUP(F2, simParam=SP)
 
 ## Set EBVs using model##
 F2=setEBV(F2,ans, simParam = SP)
@@ -171,15 +171,17 @@ Variety = selectInd(AYT, 1, use="ebv", selectTop=TRUE)
 
 ## pull genetic value for each generation ##
 
-gv = list(Parents = gv(Parents),
-          F1 = mean(gv(F1)),
-          F2 = mean(gv(F2)),
-          F3 = mean(gv(F3)),
-          F4 = mean(gv(F4)),
-          F5 = mean(gv(F5)),
-          PYT = mean(gv(PYT)),
-          AYT = mean(gv(AYT)),
-          Variety = mean(gv(Variety)))
+gv = list(Parents = mean(gv(Parents)),
+F1 = mean(gv(F1)),
+F2 = mean(gv(F2)),
+F3 = mean(gv(F3)),
+F4 = mean(gv(F4)),
+F5 = mean(gv(F5)),
+PYT = mean(gv(PYT)),
+AYT = mean(gv(AYT)),
+Variety = mean(gv(Variety)))
+
+       
 
 gv <- as.data.frame(gv)
 write.csv(gv, "gv_sy_sr_rrblup.csv")
