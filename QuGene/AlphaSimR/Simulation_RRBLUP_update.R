@@ -145,7 +145,7 @@ F5 = selectFam(F4, 5, use="ebv", selectTop=TRUE, nProgrny=100)
 
 ##update model##
 
-ans = RRBLUP(F5, simParam=SP)
+ans2 = RRBLUP(F5, simParam=SP)
 
 ##set EBV using BLUP model##
 F5 = setEBV(F5, ans2, simParam=SP)
