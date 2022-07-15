@@ -178,7 +178,7 @@ gv = list(Parents = gv(Parents),
           F4 = mean(gv(F4)),
           F5 = mean(gv(F5)),
           PYT = mean(gv(PYT)),
-          AYT = mean(v(AYT)),
+          AYT = mean(gv(AYT)),
           Variety = mean(gv(Variety)))
 
 gv <- as.data.frame(gv)
