@@ -135,16 +135,17 @@ cor2 = cor(gv(F3),ebv(F3))
 
 F4 = selectFam(F3, 7, use="ebv", selectTop=TRUE) 
 
-ans2 = RRBLUP(F3,simParam=SP)
-
 ##set EBV using BLUP model##
-F4 = setEBV(F4, ans2,simParam=SP)
+F4 = setEBV(F4, ans,simParam=SP)
 cor3= cor(gv(F4), ebv(F4))
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 5, use="ebv", selectTop=TRUE)
+F5 = selectFam(F4, 5, use="ebv", selectTop=TRUE, nProgrny=100)
 
+##update model##
+
+ans = RRBLUP(F5, simParam=SP)
 
 ##set EBV using BLUP model##
 F5 = setEBV(F5, ans2, simParam=SP)
