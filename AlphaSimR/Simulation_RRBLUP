@@ -117,10 +117,35 @@ F2 = self(F1, nProgeny = 50)
 
 ##Build GS model using F2##
 
-ans = RRBLUP(F2, simParam=SP)
+  y = pheno(F2)
+  M = pullSnpGeno(F2)
+  M = M-1
+  
+  dim(M) ## tells how large samples should be ##
+  dim(y)
+  
+  trainIndex <- as.matrix(sample(1:625, 550)) ## out of the 625 samples, pull 550
+  testIndex <- setdiff(1:625, trainIndex)
+  
+  phenoTrain <- y[trainIndex,]
+  genoTrain <- M[trainIndex,]
+  
+  phenoValid <- y[testIndex,]
+  genoValid <- M[testIndex,]
+  
+  BV <- phenoTrain
+  
+  EBVans <-mixed.solve(BV, Z=genoTrain, K=NULL, SE=FALSE, return.Hinv=FALSE)
+  
+  markerEffects <- EBVans$u
+  
+  EBV <- M %*% markerEffects ##multiply markers by estimated effects to getEBV
+  
+  
 
 ## Set EBVs using model##
-F2=setEBV(F2,ans, simParam = SP)
+F2@ebv <- as.matrix(EBV)
+
 cor1 = cor(gv(F2), ebv(F2))
 
 ## select top families to form F3 ##
@@ -128,7 +153,12 @@ cor1 = cor(gv(F2), ebv(F2))
 F3 = selectFam(F2, 10, use="ebv") 
 
 ##set EBV using BLUP model##
-F3 = setEBV(F3, ans, simParam=SP)
+M_F3 <-pullSnpGeno(F3)
+G_F3 = M_F3-1
+EBVF3 <- G_F3 %*% markerEffects
+
+F3@ebv <- as.matrix(EBVF3)
+
 cor2 = cor(gv(F3),ebv(F3))
 
 ##select top families from F3 to form F4 ##
@@ -136,7 +166,12 @@ cor2 = cor(gv(F3),ebv(F3))
 F4 = selectFam(F3, 7, use="ebv") 
 
 ##set EBV using BLUP model##
-F4 = setEBV(F4, ans,simParam=SP)
+M_F4 <-pullSnpGeno(F4)
+G_F4 = M_F4-1
+EBVF4 <- G_F4 %*% markerEffects
+
+F4@ebv <- as.matrix(EBVF4)
+
 cor3= cor(gv(F4), ebv(F4))
 
 ## select top families from F4 to form F5 ##
@@ -145,7 +180,12 @@ F5 = selectFam(F4, 5, use="ebv")
 
 
 ##set EBV using BLUP model##
-F5 = setEBV(F5, ans, simParam=SP)
+M_F5 <-pullSnpGeno(F5)
+G_F5 = M_F5-1
+EBVF5 <- G_F5 %*% markerEffects
+
+F5@ebv <- as.matrix(EBVF5)
+
 cor4 = cor(gv(F5),ebv(F5))
 
 ## select top individual from F5 to form preliminary yield trial ##
@@ -154,7 +194,11 @@ PYT = selectInd(F5, 20, use="ebv")
 
 
 ##set EBV using BLUP model##
-PYT = setEBV(PYT, ans, simParam=SP)
+M_PYT <-pullSnpGeno(PYT)
+G_PYT = M_PYT-1
+EBVPYT <- G_PYT %*% markerEffects
+
+ebv@PYT<- as.matrix(EBVPYT)
 cor5 = cor(gv(PYT),ebv(PYT))
 
 ## select top plants from PYT to form advanced yield trial ##
@@ -163,7 +207,12 @@ AYT = selectInd(PYT,  20, use="ebv")
 
 
 ##set EBV using BLUP model##
-AYT = setEBV(AYT, ans, simParam=SP)
+M_AYT <-pullSnpGeno(AYT)
+G_AYT = M_AYT-1
+EBVAYT <- G_AYT %*% markerEffects
+
+AYT@ebv <- as.matrix(EBVAYT)
+
 cor6 = cor(gv(AYT),ebv(AYT))
 
 ## select top plants to form variety ##
@@ -171,15 +220,15 @@ Variety = selectInd(AYT, 1, use="ebv")
 
 ## pull genetic value for each generation ##
 
-gv = list(Parents = gv(Parents),
-          F1 = gv(F1),
-          F2 = gv(F2),
-          F3 = gv(F3),
-          F4 = gv(F4),
-          F5 = gv(F5),
-          PYT = gv(PYT),
-          AYT = gv(AYT),
-          Variety = gv(Variety))
+gv = list(Parents = mean(gv(Parents)),
+          F1 = mean(gv(F1)),
+          F2 = mean(gv(F2)),
+          F3 = mean(gv(F3)),
+          F4 = mean(gv(F4)),
+          F5 = mean(gv(F5)),
+          PYT = mean(gv(PYT)),
+          AYT = mean(gv(AYT)),
+          Variety = mean(gv(Variety)))
 
 gv <- as.data.frame(gv)
 write.csv(gv, "gv_sy_sr_rrblup.csv")
