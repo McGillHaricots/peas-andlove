@@ -125,7 +125,7 @@ F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross##
   dim(y)
   
   trainIndex <- as.matrix(sample(1:250, 175)) ## out of the 625 samples, pull 550
-  testIndex <- setdiff(1:625, trainIndex)
+  testIndex <- setdiff(1:250, trainIndex)
   
   phenoTrain <- y[trainIndex,]
   genoTrain <- M[trainIndex,]
