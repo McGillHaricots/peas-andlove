@@ -103,6 +103,7 @@ founderPop = newMapPop(genMap,
 
 SP <- SimParam$new(founderPop)
 SP$addTraitA(5, mean=1350)
+SP$addTraitA(4, mean = 30)
 SP$setVarE(h2=0.1)
 SP$addSnpChip(50)
 
