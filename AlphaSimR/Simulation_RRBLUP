@@ -218,7 +218,7 @@ cor6 = cor(gv(AYT),ebv(AYT))
 ## select top plants to form variety ##
 Variety = selectInd(AYT, 1, use="ebv")
 
-## pull genetic value for each generation ##
+## pull genetic value for each generation and write results ##
 
 gv = list(Parents = mean(gv(Parents)),
           F1 = mean(gv(F1)),
@@ -230,7 +230,25 @@ gv = list(Parents = mean(gv(Parents)),
           AYT = mean(gv(AYT)),
           Variety = mean(gv(Variety)))
 
+F1 <- gv(F1)
+F2 <- gv(F2)
+F3 <- gv(F3)
+F4 <- gv(F4)
+F5 <- gv(F5)
+PYT <- gv(PYT)
+AYT <- gv(AYT)
+Variety <- gv(Variety)
 gv <- as.data.frame(gv)
+
+write.csv(gv, "BLUP_SR_Random_Yield.csv")
+write.csv(F1, "F1gv_BLUP_SR_Random_Yield.csv")
+write.csv(F2, "F2gv_BLUP_SR_Random_Yield.csv")
+write.csv(F3, "F3gv_BLUP_SR_Random_Yield.csv")
+write.csv(F4, "F4gv_BLUP_SR_Random_Yield.csv")
+write.csv(F5, "F5gv_BLUP_SR_Random_Yield.csv")
+write.csv(PYT, "PYTgv_BLUP_SR_Random_Yield.csv")
+write.csv(AYT, "AYTgv_BLUP_SR_Random_Yield.csv")
+write.csv(Variety, "Varietygv_BLUP_SR_Random_Yield.csv")
 write.csv(gv, "gv_sy_sr_rrblup.csv")
 
 ## list correlations to view model performance##
