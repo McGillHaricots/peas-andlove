@@ -104,17 +104,17 @@ founderPop = newMapPop(genMap,
 SP <- SimParam$new(founderPop)
 SP$addTraitA(5, mean=1350)
 SP$addTraitA(4, mean = 30)
-SP$setVarE(h2=0.1)
+SP$setVarE(c(h2=0.1, h2=0.4))
 SP$addSnpChip(50)
 
 ## generate parents and cross to form F1 ##
 
 Parents = newPop(founderPop)
-F1 = randCross(Parents, 25) 
+F1 = randCross(Parents, 50) ##randomly cross 50 parents##
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 50) 
+F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross## 
 
 ##Build GS model using F2##
 
@@ -125,7 +125,7 @@ F2 = self(F1, nProgeny = 50)
   dim(M) ## tells how large samples should be ##
   dim(y)
   
-  trainIndex <- as.matrix(sample(1:625, 550)) ## out of the 625 samples, pull 550
+  trainIndex <- as.matrix(sample(1:250, 175)) ## out of the 625 samples, pull 550
   testIndex <- setdiff(1:625, trainIndex)
   
   phenoTrain <- y[trainIndex,]
