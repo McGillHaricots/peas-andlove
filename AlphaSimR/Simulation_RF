@@ -10,6 +10,7 @@ library(caret)
 library(ranger)
 library(tidyverse)
 library(e1071)
+library(randomForest)
 
 ## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
 
@@ -95,11 +96,12 @@ haplotypes = list(chr1geno,chr2geno, chr3geno, chr4geno,chr5geno,chr6geno,chr7ge
 length(genMap)
 length(haplotypes)
 
+####### SIMULATION STARTS HERE ######
 
 ## establish founder population ##
 founderPop = newMapPop(genMap, 
                        haplotypes, 
-                       inbred = FALSE, 
+                       inbred = FALSE,
                        ploidy = 2L)
 
 
@@ -133,13 +135,21 @@ F2 = self(F1, nProgeny = 5)
   SR_train <- pop[train_index, ]
   SR_test <- pop[-train_index, ]
 
-  control <- trainControl(method='cv', number=10)
-
+  control <- trainControl(method='repeatedcv', 
+                                  number=10, 
+                                  repeats=3)
+  metric <- "Accuracy"
+  set.seed(123)
+  
+  mtry <- sqrt(ncol(SR_train))
+  tunegrid <- expand.grid(.mtry=mtry)
+                                    
   ##build model##
   
-  rf_fit = train(as.factor(ID1) ~ ., 
+  rf_fit = train(ID1 ~ ., 
               data = SR_train, 
-              method = "ranger",
+              method = "rf",
+              tuneLength= 14,
               trControl=control)
   
   #make predictions##
