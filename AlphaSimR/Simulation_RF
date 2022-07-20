@@ -109,8 +109,8 @@ founderPop = newMapPop(genMap,
 
 SP <- SimParam$new(founderPop)
 SP$addTraitA(5, mean=1350)
-SP$setVarE(h2=0.1)
-SP$addSnpChip(50)
+SP$setVarE(h2=0.2)
+SP$addSnpChip(55)
 
 ## generate parents and cross to form F1 ##
 
@@ -137,20 +137,14 @@ F2 = self(F1, nProgeny = 5)
 
   control <- trainControl(method='repeatedcv', 
                                   number=10, 
-                                  repeats=3)
-  metric <- "Accuracy"
-  set.seed(123)
-  
-  mtry <- sqrt(ncol(SR_train))
-  tunegrid <- expand.grid(.mtry=mtry)
-                                    
+                                  repeats=3)                                    
   ##build model##
   
   rf_fit = train(ID1 ~ ., 
               data = SR_train, 
               method = "rf",
-              tuneLength= 14,
-              trControl=control)
+              tuneLength= 10,
+              trControl=control) ## search a random tuning grid ##
   
   #make predictions##
   
