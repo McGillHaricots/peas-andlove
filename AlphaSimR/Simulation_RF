@@ -133,7 +133,7 @@ F2 = self(F1, nProgeny = 5)
   SR_train <- pop[train_index, ]
   SR_test <- pop[-train_index, ]
 
-  control <- trainControl(method='repeatedcv', number=50, repeats=50)
+  control <- trainControl(method='cv', number=10)
 
   ##build model##
   
@@ -154,7 +154,7 @@ F2 = self(F1, nProgeny = 5)
 
 ## select top individuals to form F3 ##
 
-F3 = selectWithinFam(F2, 100, use="ebv") 
+F3 = selectFam(F2, 100, use="ebv") 
 
 ##RUN THE RF MODEL##
 
@@ -166,13 +166,13 @@ colnames(popF3) <- paste("ID",1:551, sep="")
 
 #make predictions##
 
-predictionsF3 <- as.numeric(predict(rf_fit, pop))
+predictionsF3 <- as.numeric(predict(rf_fit, popF3))
 
-cor1 = cor(predictionsF3, gv(F3))
+cor2 = cor(predictionsF3, gv(F3))
 
 #set ebvs#
 
-F3@ebv= as.matrix(EBV)
+F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
@@ -190,7 +190,7 @@ colnames(popF4) <- paste("ID",1:551, sep="")
 
 predictionsF4 <- as.numeric(predict(rf_fit, pop))
 
-cor1 = cor(predictionsF4, gv(F4))
+cor3 = cor(predictionsF4, gv(F4))
 
 #set ebvs#
 
@@ -199,7 +199,7 @@ F4@ebv= as.matrix(predictionsF4)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectWithinFam(F4, 50, use="ebv")
+F5 = selectWithinFam(F4, 3, use="ebv")
 
 
 ##RUN THE RF MODEL##
@@ -214,16 +214,16 @@ colnames(popF5) <- paste("ID",1:551, sep="")
 
 predictionsF5 <- as.numeric(predict(rf_fit, popF5))
 
-cor1 = cor(predictionsF5, gv(F5))
+cor4 = cor(predictionsF5, gv(F5))
 
 #set ebvs#
 
-F5@ebv= as.matrix(EBV)
+F5@ebv= as.matrix(predictionsF5)
 
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectInd(F5, 20, use="ebv") 
+PYT = selectInd(F5, 15, use="ebv") 
 
 
 ##RUN THE RF MODEL##
@@ -238,7 +238,7 @@ colnames(popPYT) <- paste("ID",1:551, sep="")
 
 predictionsPYT <- as.numeric(predict(rf_fit, pop))
 
-cor1 = cor(predictionsPYT gv(PYT))
+cor5 = cor(predictionsPYT gv(PYT))
 
 #set ebvs#
 
@@ -261,7 +261,7 @@ colnames(popAYT) <- paste("ID",1:551, sep="")
 
 predictionsAYT <- as.numeric(predict(rf_fit, popAYT))
 
-cor1 = cor(EBV, gv(predictionsAYT))
+cor6 = cor(predictionsAYT, gv(predictionsAYT))
 
 #set ebvs#
 
@@ -272,18 +272,37 @@ Variety = selectInd(AYT, 1, use="ebv")
 
 ## pull genetic value for each generation ##
 
-gv = list(Parents = gv(Parents),
-          F1 = gv(F1),
-          F2 = gv(F2),
-          F3 = gv(F3),
-          F4 = gv(F4),
-          F5 = gv(F5),
-          PYT = gv(PYT),
-          AYT = gv(AYT),
-          Variety = gv(Variety))
+gv = list(Parents = mean(gv(Parents)),
+          F1 = mean(gv(F1)),
+          F2 = mean(gv(F2)),
+          F3 = mean(gv(F3)),
+          F4 = mean(gv(F4)),
+          F5 = mean(gv(F5)),
+          PYT = mean(gv(PYT)),
+          AYT = mean(gv(AYT)),
+          Variety = mean(gv(Variety)))
 
+F1 <- gv(F1)
+F2 <- gv(F2)
+F3 <- gv(F3)
+F4 <- gv(F4)
+F5 <- gv(F5)
+PYT <- gv(PYT)
+AYT <- gv(AYT)
+Variety <- gv(Variety)
 gv <- as.data.frame(gv)
-write.csv(gv, "gv_sy_sr_rf.csv")
 
-cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
-write.csv(cor, "cor_sy_sr_rf.csv")
+write.csv(gv, "BLUP_SRN_Random_Yield.csv")
+write.csv(F1, "F1gv_BLUP_SRN_Random_Yield.csv")
+write.csv(F2, "F2gv_BLUP_SRN_Random_Yield.csv")
+write.csv(F3, "F3gv_BLUP_SRN_Random_Yield.csv")
+write.csv(F4, "F4gv_BLUP_SRN_Random_Yield.csv")
+write.csv(F5, "F5gv_BLUP_SRN_Random_Yield.csv")
+write.csv(PYT, "PYTgv_BLUP_SRN_Random_Yield.csv")
+write.csv(AYT, "AYTgv_BLUP_SRN_Random_Yield.csv")
+write.csv(Variety, "Varietygv_BLUP_SRN_Random_Yield.csv")
+write.csv(gv, "BLUP_SRN_Random_Yield.csv")
+
+## list correlations to view model performance##
+correlations <- list(cor1, cor2, cor3, cor4, cor5, cor6)
+write.csv(correlations, "cor_BLUP_SRN_Random_Yield.csv")
