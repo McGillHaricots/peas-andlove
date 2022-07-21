@@ -121,23 +121,29 @@ F1 = randCross(Parents, 50)
 
 F2 = self(F1, nProgeny = 5) 
 
-##Build GS model to get EBVs##
+###### BUILD GS MODEL #####
 
+  ## pull phenotypes and genptypes ##
   set.seed(23489)
   pheno <- pheno(F2)
   geno <- pullSnpGeno(F2)
-  pop <- cbind(pheno, geno)
-  colnames(pop) <- paste("ID",1:551, sep="")
+  popF2 <- cbind(pheno, geno)
+  colnames(popF2) <- paste("ID",1:606, sep="") ##1-605 because the SNP chip has 605 SNPs + phenotypes may have to change if you have a different num. SNPS###
+  ##note ID1 will be the phenotype, IDs 2-606 are genotypes##
   
-  ##note ID1 will be the phenotype, IDs 2-551 are genotypes##
-
-  train_index <- sample(1:nrow(pop), 0.9 * nrow(pop))
+  
+  ## create TRN TST split ###
+  train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
   SR_train <- pop[train_index, ]
   SR_test <- pop[-train_index, ]
 
+
+  ## create cross validation strategy ##
   control <- trainControl(method='repeatedcv', 
-                                  number=10, 
-                                  repeats=3)                                    
+                                  number=10, ##will test 10 different values for mtry (number of variables for splitting) ##
+                                  repeats=3,
+                                  search = "random")        
+                              
   ##build model##
   
   rf_fit = train(ID1 ~ ., 
@@ -145,20 +151,23 @@ F2 = self(F1, nProgeny = 5)
               method = "rf",
               tuneLength= 10,
               trControl=control) ## search a random tuning grid ##
+              
+ ## look at the parameters of the model ##
+ print(rf) 
   
-  #make predictions##
+#make predictions##
   
-  predictions <- as.numeric(predict(rf_fit, pop))
+predictionsF2 <- as.numeric(predict(rf_fit, popF2))
   
-  cor1 = cor(predictions, gv(F2))
+cor1 = cor(predictionsF2, gv(F2))
   
-  #set ebvs#
+#set ebvs#
   
-  F2@ebv= as.matrix(predictions)
+F2@ebv= as.matrix(predictions)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 100, use="ebv") 
+F3 = selectFam(F2, 30, use="ebv") 
 
 ##RUN THE RF MODEL##
 
@@ -166,7 +175,7 @@ set.seed(23489)
 phenoF3 <- pheno(F3)
 genoF3 <- pullSnpGeno(F3)
 popF3 <- cbind(phenoF3, genoF3)
-colnames(popF3) <- paste("ID",1:551, sep="")
+colnames(popF3) <- paste("ID",1:606, sep="")
 
 #make predictions##
 
@@ -180,7 +189,7 @@ F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectWithinFam(F3, 75, use="ebv") 
+F4 = selectWithinFam(F3, 5, use="ebv") 
 
 ##RUN THE RF MODEL##
 
@@ -188,11 +197,11 @@ set.seed(23489)
 phenoF4 <- pheno(F4)
 genoF4 <- pullSnpGeno(F4)
 popF4 <- cbind(phenoF4, genoF4)
-colnames(popF4) <- paste("ID",1:551, sep="")
+colnames(popF4) <- paste("ID",1:606, sep="")
 
 #make predictions##
 
-predictionsF4 <- as.numeric(predict(rf_fit, pop))
+predictionsF4 <- as.numeric(predict(rf_fit, popF4))
 
 cor3 = cor(predictionsF4, gv(F4))
 
@@ -212,7 +221,7 @@ set.seed(23489)
 phenoF5 <- pheno(F5)
 genoF5 <- pullSnpGeno(F5)
 popF5 <- cbind(phenoF5, genoF5)
-colnames(popF5) <- paste("ID",1:551, sep="")
+colnames(popF5) <- paste("ID",1:606, sep="")
 
 #make predictions##
 
@@ -236,13 +245,13 @@ set.seed(23489)
 phenoPYT <- pheno(PYT)
 genoPYT <- pullSnpGeno(PYT)
 popPYT <- cbind(phenoPYT, genoPYT)
-colnames(popPYT) <- paste("ID",1:551, sep="")
+colnames(popPYT) <- paste("ID",1:606, sep="")
 
 #make predictions##
 
-predictionsPYT <- as.numeric(predict(rf_fit, pop))
+predictionsPYT <- as.numeric(predict(rf_fit, popPYT))
 
-cor5 = cor(predictionsPYT gv(PYT))
+cor5 = cor(predictionsPYT, gv(PYT))
 
 #set ebvs#
 
@@ -250,7 +259,7 @@ PYT@ebv= as.matrix(predictionsPYT)
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  7, use="ebv") 
+AYT = selectInd(PYT,  7, use="ebv", reps=5) 
 
 
 ##RUN THE RF MODEL##
@@ -259,13 +268,13 @@ set.seed(23489)
 phenoAYT <- pheno(AYT)
 genoAYT <- pullSnpGeno(AYT)
 popAYT <- cbind(phenoAYT, genoAYT)
-colnames(popAYT) <- paste("ID",1:551, sep="")
+colnames(popAYT) <- paste("ID",1:606, sep="")
 
 #make predictions##
 
 predictionsAYT <- as.numeric(predict(rf_fit, popAYT))
 
-cor6 = cor(predictionsAYT, gv(predictionsAYT))
+cor6 = cor(predictionsAYT, gv(AYT))
 
 #set ebvs#
 
