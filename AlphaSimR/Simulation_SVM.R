@@ -108,55 +108,40 @@ SP$addSnpChip(50)
 ## generate parents and cross to form F1 ##
 
 Parents = newPop(founderPop)
-F1 = randCross(Parents, 25) 
+F1 = randCross(Parents, 50) 
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 50) 
+F2 = self(F1, nProgeny = 5) 
 
-          ##Build GS model using F1 as TRN to get EBVs##
+          ##Build GS model using F2 as TRN to get EBVs##
 
           set.seed(23489)
-          pheno <- pheno(F1)
-          geno <- pullSnpGeno(F1)
-          pop <- cbind(pheno, geno)
-          colnames(pop) <- paste("ID",1:551, sep="")  ##note ID1 will be the phenotype, IDs 2-551 are genotypes##
-
-          ##creater random TRN TST partition##
+          y <- pheno(F2)
+          x <- pullSnpGeno(F2)
+          data = as.data.frame(x,y = as.factor(y))
 
           train_index <- sample(1:nrow(pop), 0.9 * nrow(pop))
           SR_train <- data[train_index, ]
           SR_test <- data[-train_index, ]
 
+          ytrain <- y[train_index, ]
+          ytest <- y[-train_index,]
 
           ##fit model, predict pheno on all markers
-          fit = svm(factor(SR_train$ID1) ~., pop=SR_train, scale = FALSE, kernel="radial", cost=5)
-
-          ##create grid of marker data in test set
-          xgrid <- pop[,-1]
-
-          ##create y grid to hold predictions based on xgrid and above model fit
-          ygrid <- predict(fit, xgrid)
-
-          ## see how model performs ##
-          actual <- as.numeric(SR_test$ID1)
-          predictions <- as.numeric(ygrid)
-          accuracy <- as.data.frame(cbind(actual, predictions))
-          cor(accuracy$actual, accuracy$predictions, method="pearson")
+          fit = svm(ytrain ~ ., data = SR_train, kernel = "linear", cost = 10, scale = FALSE)
 
 ##Use model to predict EBVs###
 
 genoF2 <- pullSnpGeno(F2)
 
-predictions = predict(fit,genoF2)
+predictionsF2 = as.numeric(predict(fit,genoF2))
 
-EBV = predictions
-
-cor1 = cor(EBV, gv(F2))
+cor1 = cor(predictionsF2, gv(F2))
 
 #set ebvs#
 
-f2@ebv= as.matrix(EBV)
+F2@ebv= as.matrix(EBV)
 
 ## select top individuals to form F3 ##
 
@@ -173,7 +158,7 @@ cor2 = cor(EBV, gv(F3))
 
 #set ebvs#
 
-f3@ebv= as.matrix(EBV)
+F3@ebv= as.matrix(EBV)
 
 ##select top families from F3 to form F4 ##
 
@@ -191,7 +176,7 @@ cor3 = cor(EBV, gv(F4))
 
 #set ebvs#
 
-f4@ebv= as.matrix(EBV)
+F4@ebv= as.matrix(EBV)
 
 
 ## select top families from F4 to form F5 ##
@@ -210,7 +195,7 @@ cor4 = cor(EBV, gv(F5))
 
 #set ebvs#
 
-f5@ebv= as.matrix(EBV)
+F5@ebv= as.matrix(EBV)
 
 
 ## select top families from F5 to form preliminary yield trial ##
