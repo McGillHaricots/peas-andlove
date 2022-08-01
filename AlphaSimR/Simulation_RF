@@ -115,11 +115,11 @@ SP$addSnpChip(55)
 ## generate parents and cross to form F1 ##
 
 Parents = newPop(founderPop)
-F1 = randCross(Parents, 50) 
+F1 = randCross(Parents, 100) 
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 5) 
+F2 = self(F1, nProgeny = 6) 
 
 ###### BUILD GS MODEL #####
 
@@ -167,7 +167,7 @@ F2@ebv= as.matrix(predictions)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 30, use="ebv") 
+F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
 
 ##RUN THE RF MODEL##
 
@@ -189,7 +189,7 @@ F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectWithinFam(F3, 5, use="ebv") 
+F4 = selectFam(F3, 30, use="ebv", top=TRUE) 
 
 ##RUN THE RF MODEL##
 
@@ -212,7 +212,7 @@ F4@ebv= as.matrix(predictionsF4)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectWithinFam(F4, 3, use="ebv")
+F5 = selectFam(F4, 15, use="ebv", top=TRUE)
 
 
 ##RUN THE RF MODEL##
@@ -236,7 +236,7 @@ F5@ebv= as.matrix(predictionsF5)
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectInd(F5, 15, use="ebv") 
+PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE) 
 
 
 ##RUN THE RF MODEL##
@@ -259,7 +259,7 @@ PYT@ebv= as.matrix(predictionsPYT)
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  7, use="ebv", reps=5) 
+AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
 
 
 ##RUN THE RF MODEL##
@@ -281,7 +281,7 @@ cor6 = cor(predictionsAYT, gv(AYT))
 AYT@ebv= as.matrix(predictionsAYT)
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1, use="ebv")
+Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
 
 ## pull genetic value for each generation ##
 
