@@ -108,8 +108,8 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitA(5, mean=1350)
-SP$setVarE(h2=0.2)
+SP$addTraitADE(6, mean=1350)
+SP$setVarE(h2=0.25)
 SP$addSnpChip(55)
 
 ## generate parents and cross to form F1 ##
@@ -134,8 +134,8 @@ F2 = self(F1, nProgeny = 6)
   
   ## create TRN TST split ###
   train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
-  SR_train <- pop[train_index, ]
-  SR_test <- pop[-train_index, ]
+  SR_train <- popF2[train_index, ]
+  SR_test <- popF2[-train_index, ]
 
 
   ## create cross validation strategy ##
