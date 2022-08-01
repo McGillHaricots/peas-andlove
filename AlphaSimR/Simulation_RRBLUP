@@ -102,14 +102,14 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitADE(5, mean=1350)
-SP$setVarE(h2=0.1)
-SP$addSnpChip(50)
+SP$addTraitADE(6, mean=1350)
+SP$setVarE(h2=0.25)
+SP$addSnpChip(55)
 
 ## generate parents and cross to form F1 ##
 
 Parents = newPop(founderPop)
-F1 = randCross(Parents, 50) ##randomly cross 50 parents##
+F1 = randCross(Parents, 100) ##randomly cross 0 parents##
 
 ## self and bulk F1 to form F2 ##
 
@@ -124,8 +124,8 @@ F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross##
   dim(M) ## tells how large samples should be ##
   dim(y)
   
-  trainIndex <- as.matrix(sample(1:250, 175)) ## out of the 625 samples, pull 550
-  testIndex <- setdiff(1:250, trainIndex)
+  trainIndex <- as.matrix(sample(1:500, 400)) ## out of the 500 samples, pull 400
+  testIndex <- setdiff(1:500, trainIndex)
   
   phenoTrain <- y[trainIndex,]
   genoTrain <- M[trainIndex,]
@@ -150,7 +150,7 @@ cor1 = cor(gv(F2), ebv(F2))
 
 ## select top families to form F3 ##
 
-F3 = selectFam(F2, 10, use="ebv") 
+F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
 
 ##set EBV using BLUP model##
 M_F3 <-pullSnpGeno(F3)
@@ -163,7 +163,7 @@ cor2 = cor(gv(F3),ebv(F3))
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 7, use="ebv") 
+F4 = selectFam(F3, 30, use="ebv") 
 
 ##set EBV using BLUP model##
 M_F4 <-pullSnpGeno(F4)
@@ -176,7 +176,7 @@ cor3= cor(gv(F4), ebv(F4))
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 5, use="ebv")
+F5 = selectFam(F4, 15, use="ebv")
 
 
 ##set EBV using BLUP model##
@@ -190,7 +190,7 @@ cor4 = cor(gv(F5),ebv(F5))
 
 ## select top individual from F5 to form preliminary yield trial ##
 
-PYT = selectInd(F5, 20, use="ebv") 
+PYT = selectWithinFam(F5, 4, use="ebv") 
 
 
 ##set EBV using BLUP model##
@@ -203,7 +203,7 @@ cor5 = cor(gv(PYT),ebv(PYT))
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv") 
+AYT = selectInd(PYT, 20, use="ebv") 
 
 
 ##set EBV using BLUP model##
