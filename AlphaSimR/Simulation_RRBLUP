@@ -102,9 +102,9 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitADE(10 mean=1350)
+SP$addTraitADE(10, mean=1350)
 SP$setVarE(h2=0.25)
-SP$addSnpChip(61)
+SP$addSnpChip(57)
 
 ## generate parents and cross to form F1 ##
 
@@ -124,7 +124,7 @@ F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross##
   dim(M) ## tells how large samples should be ##
   dim(y)
   
-  trainIndex <- as.matrix(sample(1:500, 400)) ## out of the 500 samples, pull 400
+  trainIndex <- as.matrix(sample(1:500, 0.9*(nrow(M)))) ## out of the 500 samples, pull 90% of them
   testIndex <- setdiff(1:500, trainIndex)
   
   phenoTrain <- y[trainIndex,]
