@@ -13,7 +13,7 @@ quit()
 cd correctdirectory
 
 ##request time and memory for interactive job##
-salloc --time=3:0:0 --mem=300G --account=def-haricots
+salloc --time=3:0:0 --mem=50G --account=def-haricots
 
 ##once nodes are granted, load R##
 module load gcc/9.3.0 r/4.1.2
