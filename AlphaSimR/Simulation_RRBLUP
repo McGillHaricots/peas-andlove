@@ -203,7 +203,7 @@ cor5 = cor(gv(PYT),ebv(PYT))
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT, 20, use="ebv") 
+AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
 
 
 ##set EBV using BLUP model##
