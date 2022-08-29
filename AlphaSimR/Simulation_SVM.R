@@ -101,39 +101,38 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitA(5, mean=1350)
-SP$setVarE(h2=0.1)
-SP$addSnpChip(50)
+SP$addTraitADE(6, mean=1350)
+SP$setVarE(h2=0.25)
+SP$addSnpChip(55)
 
 ## generate parents and cross to form F1 ##
 
 Parents = newPop(founderPop)
-F1 = randCross(Parents, 50) 
+F1 = randCross(Parents, 100) 
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 5) 
+F2 = self(F1, nProgeny = 6) 
 
           ##Build GS model using F2 as TRN to get EBVs##
 
           set.seed(23489)
           y <- pheno(F2)
           x <- pullSnpGeno(F2)
-          data = as.data.frame(x,y = as.factor(y))
+          popF2 = as.data.frame(cbind(y,x))
+          colnames(popF2) <- paste("ID",1:606, sep="")
 
-          train_index <- sample(1:nrow(pop), 0.9 * nrow(pop))
-          SR_train <- data[train_index, ]
-          SR_test <- data[-train_index, ]
-
-          ytrain <- y[train_index, ]
-          ytest <- y[-train_index,]
-
+          train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
+          SR_train <- popF2[train_index, ]
+          SR_test <- popF2[-train_index, ]
+                            
           ##fit model, predict pheno on all markers
-          fit = svm(ytrain ~ ., data = SR_train, kernel = "linear", cost = 10, scale = FALSE)
+          fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
 
 ##Use model to predict EBVs###
 
 genoF2 <- pullSnpGeno(F2)
+colnames(genoF2) <- paste("ID", 2:606, sep="")
 
 predictionsF2 = as.numeric(predict(fit,genoF2))
 
@@ -145,11 +144,13 @@ F2@ebv= as.matrix(EBV)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 10, use="ebv") 
+F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
+
 
 ##RUN THE SVM MODEL##
 
 genoF3 <- pullSnpGeno(F3)
+colnames(genoF3) <- paste("ID", 2:606, sep="")
 predictions = predict(fit,genoF3)
 
 EBV = predictions
@@ -162,12 +163,14 @@ F3@ebv= as.matrix(EBV)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 7, use="ebv") 
+F4 = selectFam(F3, 30, use="ebv", top=TRUE) 
 
 
 ##RUN THE SVM MODEL##
 
 genoF4 <- pullSnpGeno(F4)
+colnames(genoF4) <- paste("ID", 2:606, sep="")
+
 predictions = predict(fit,genoF4)
 
 EBV = predictions
@@ -181,12 +184,14 @@ F4@ebv= as.matrix(EBV)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 5, use="ebv")
+F5 = selectFam(F4, 15, use="ebv", top=TRUE)
 
 
 ##RUN THE SVM MODEL##
 
 genoF5 <- pullSnpGeno(F5)
+colnames(genoF5) <- paste("ID", 2:606, sep="")
+
 predictions = predict(fit,genoF5)
 
 EBV = predictions
@@ -200,12 +205,14 @@ F5@ebv= as.matrix(EBV)
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectInd(F5, 20, use="ebv") 
+PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)  
 
 
 ##RUN THE SVM MODEL##
 
 genoPYT <- pullSnpGeno(PYT)
+colnames(genoPYT) <- paste("ID", 2:606, sep="")
+
 predictions = predict(fit,genoPYT)
 
 EBV = predictions
@@ -219,12 +226,14 @@ PYT@ebv= as.matrix(EBV)
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv") 
+AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
 
 
 ##RUN THE SVM MODEL##
 
 genoAYT <- pullSnpGeno(AYT)
+colnames(genoAYT) <- paste("ID", 2:606, sep="")
+
 predictions = predict(fit,genoAYT)
 
 EBV = predictions
@@ -236,7 +245,7 @@ cor6 = cor(EBV, gv(AYT))
 AYT@ebv= as.matrix(EBV)
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1, use="ebv")
+Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
 
 ## pull genetic value for each generation ##
 
