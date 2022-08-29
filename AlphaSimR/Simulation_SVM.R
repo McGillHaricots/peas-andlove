@@ -140,7 +140,7 @@ cor1 = cor(predictionsF2, gv(F2))
 
 #set ebvs#
 
-F2@ebv= as.matrix(EBV)
+F2@ebv= as.matrix(predictionsF2)
 
 ## select top individuals to form F3 ##
 
@@ -151,15 +151,14 @@ F3 = selectFam(F2, 50, use="ebv", top=TRUE)
 
 genoF3 <- pullSnpGeno(F3)
 colnames(genoF3) <- paste("ID", 2:606, sep="")
-predictions = predict(fit,genoF3)
+predictionsF3 = predict(fit,genoF3)
 
-EBV = predictions
 
-cor2 = cor(EBV, gv(F3))
+cor2 = cor(predictionsF3, gv(F3))
 
 #set ebvs#
 
-F3@ebv= as.matrix(EBV)
+F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
@@ -171,15 +170,13 @@ F4 = selectFam(F3, 30, use="ebv", top=TRUE)
 genoF4 <- pullSnpGeno(F4)
 colnames(genoF4) <- paste("ID", 2:606, sep="")
 
-predictions = predict(fit,genoF4)
+predictionsF4 = predict(fit,genoF4)
 
-EBV = predictions
-
-cor3 = cor(EBV, gv(F4))
+cor3 = cor(predictionsF4, gv(F4))
 
 #set ebvs#
 
-F4@ebv= as.matrix(EBV)
+F4@ebv= as.matrix(predictionsF4)
 
 
 ## select top families from F4 to form F5 ##
@@ -192,15 +189,14 @@ F5 = selectFam(F4, 15, use="ebv", top=TRUE)
 genoF5 <- pullSnpGeno(F5)
 colnames(genoF5) <- paste("ID", 2:606, sep="")
 
-predictions = predict(fit,genoF5)
+predictionsF5 = predict(fit,genoF5)
 
-EBV = predictions
 
-cor4 = cor(EBV, gv(F5))
+cor4 = cor(predictionsF5, gv(F5))
 
 #set ebvs#
 
-F5@ebv= as.matrix(EBV)
+F5@ebv= as.matrix(predictionsF5)
 
 
 ## select top families from F5 to form preliminary yield trial ##
@@ -213,15 +209,13 @@ PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)
 genoPYT <- pullSnpGeno(PYT)
 colnames(genoPYT) <- paste("ID", 2:606, sep="")
 
-predictions = predict(fit,genoPYT)
+predictionsPYT = predict(fit,genoPYT)
 
-EBV = predictions
-
-cor5 = cor(EBV, gv(PYT))
+cor5 = cor(predictionsPYT, gv(PYT))
 
 #set ebvs#
 
-PYT@ebv= as.matrix(EBV)
+PYT@ebv= as.matrix(predictionsPYT)
 
 
 ## select top plants from PYT to form advanced yield trial ##
@@ -234,11 +228,10 @@ AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 genoAYT <- pullSnpGeno(AYT)
 colnames(genoAYT) <- paste("ID", 2:606, sep="")
 
-predictions = predict(fit,genoAYT)
+predictionsAYT = predict(fit,genoAYT)
 
-EBV = predictions
 
-cor6 = cor(EBV, gv(AYT))
+cor6 = cor(predictionsAYT, gv(AYT))
 
 #set ebvs#
 
