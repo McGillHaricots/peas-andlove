@@ -267,6 +267,11 @@ AYT <- gv(AYT)
 Variety <- gv(Variety)
 gv <- as.data.frame(gv)
 
+## list correlations to view model performance##
+cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
+
+## write files - naming convention: "model_trainingSet_descriptor_populationType_trait.csv" ###
+
 write.csv(gv, "SVM_Random_avegv_SRNM_Yield.csv")
 write.csv(F1, "SVM_Random_F1gv_SRNM_Yield.csv")
 write.csv(F2, "SVM_Random_F2gv_SRNM_Yield.csv.csv")
@@ -276,7 +281,4 @@ write.csv(F5, "SVM_Random_F5gv_SRNM_Yield.csv")
 write.csv(PYT, "SVM_Random_PYT_SRNM_Yield.csv.csv")
 write.csv(AYT, "SVM_Random_AYT_SRNM_Yield.csv")
 write.csv(Variety, "SVM_Random_Variety_SRNM_Yield.csv.csv")
-
-## list correlations to view model performance##
-cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
 write.csv(cor, "SVM_Random_COR_SRNM_Yield.csv")
