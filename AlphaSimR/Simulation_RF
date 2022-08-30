@@ -152,6 +152,8 @@ F2 = self(F1, nProgeny = 6)
               tuneLength= 10,
               trControl=control) ## search a random tuning grid ##
               
+  ### This command takes about 90 minutes in an compute canada interactive session ###
+              
  ## look at the parameters of the model ##
  print(rf) 
   
