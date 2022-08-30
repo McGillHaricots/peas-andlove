@@ -242,18 +242,38 @@ Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
 
 ## pull genetic value for each generation ##
 
-gv = list(Parents = gv(Parents),
-          F1 = gv(F1),
-          F2 = gv(F2),
-          F3 = gv(F3),
-          F4 = gv(F4),
-          F5 = gv(F5),
-          PYT = gv(PYT),
-          AYT = gv(AYT),
-          Variety = gv(Variety))
+## pull genetic value for each generation ##
 
+gv = list(Parents = mean(gv(Parents)),
+          F1 = mean(gv(F1)),
+          F2 = mean(gv(F2)),
+          F3 = mean(gv(F3)),
+          F4 = mean(gv(F4)),
+          F5 = mean(gv(F5)),
+          PYT = mean(gv(PYT)),
+          AYT = mean(gv(AYT)),
+          Variety = mean(gv(Variety)))
+
+F1 <- gv(F1)
+F2 <- gv(F2)
+F3 <- gv(F3)
+F4 <- gv(F4)
+F5 <- gv(F5)
+PYT <- gv(PYT)
+AYT <- gv(AYT)
+Variety <- gv(Variety)
 gv <- as.data.frame(gv)
-write.csv(gv, "gv_sy_sr_rf.csv")
 
+write.csv(gv, "SVM_Random_avegv_SR_Yield.csv")
+write.csv(F1, "SVM_Random_F1gv_SR_Yield.csv")
+write.csv(F2, "SVM_Random_F2gv_SR_Yield.csv.csv")
+write.csv(F3, "SVM_Random_F3gv_SR_Yield.csv.csv")
+write.csv(F4, "SVM_Random_F4gv_SR_Yield.csv.csv")
+write.csv(F5, "SVM_Random_F5gv_SR_Yield.csv")
+write.csv(PYT, "SVM_Random_PYT_SR_Yield.csv.csv")
+write.csv(AYT, "SVM_Random_AYT_SR_Yield.csv")
+write.csv(Variety, "SVM_Random_Variety_SR_Yield.csv.csv")
+
+## list correlations to view model performance##
 cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
-write.csv(cor, "cor_sy_sr_rf.csv")
+write.csv(cor, "SVM_Random_COR_SR_Yield.csv")
