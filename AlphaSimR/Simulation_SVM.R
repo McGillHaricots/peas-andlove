@@ -10,7 +10,7 @@ library(e1071)
 
 ## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
 
-genotypes <- as.data.frame(read_xlsx("SR_geno.xlsx"))
+genotypes <- as.data.frame(read_xlsx("SRNM_geno.xlsx"))
 genotypes <- genotypes[1:1000,]
 
 
@@ -18,8 +18,8 @@ genotypes <- genotypes[1:1000,]
 
 genotypes[genotypes==1] <- 0
 genotypes[genotypes==2] <- 1
-write_xlsx(genotypes, "SRAlphaGeno.xlsx")
-genotypes <- as.data.frame(read_xlsx("SRAlphaGeno.xlsx"))
+write_xlsx(genotypes, "SRNMAlphaGeno.xlsx")
+genotypes <- as.data.frame(read_xlsx("SRNMAlphaGeno.xlsx"))
 rownames(genotypes) = NULL
 colnames(genotypes) = NULL
 
@@ -89,6 +89,9 @@ chr11geno = as.matrix(chr11geno,nrow=2000,ncol=ncol(chr11geno))
 haplotypes = list(chr1geno,chr2geno, chr3geno, chr4geno,chr5geno,chr6geno,chr7geno,chr8geno,chr9geno,chr10geno,chr11geno)
 
 ## confirm geno and map are the same length ##
+
+length(genMap)
+length(haplotypes)
 
 
 ## establish founder population ##
@@ -264,16 +267,16 @@ AYT <- gv(AYT)
 Variety <- gv(Variety)
 gv <- as.data.frame(gv)
 
-write.csv(gv, "SVM_Random_avegv_SR_Yield.csv")
-write.csv(F1, "SVM_Random_F1gv_SR_Yield.csv")
-write.csv(F2, "SVM_Random_F2gv_SR_Yield.csv.csv")
-write.csv(F3, "SVM_Random_F3gv_SR_Yield.csv.csv")
-write.csv(F4, "SVM_Random_F4gv_SR_Yield.csv.csv")
-write.csv(F5, "SVM_Random_F5gv_SR_Yield.csv")
-write.csv(PYT, "SVM_Random_PYT_SR_Yield.csv.csv")
-write.csv(AYT, "SVM_Random_AYT_SR_Yield.csv")
-write.csv(Variety, "SVM_Random_Variety_SR_Yield.csv.csv")
+write.csv(gv, "SVM_Random_avegv_SRNM_Yield.csv")
+write.csv(F1, "SVM_Random_F1gv_SRNM_Yield.csv")
+write.csv(F2, "SVM_Random_F2gv_SRNM_Yield.csv.csv")
+write.csv(F3, "SVM_Random_F3gv_SRNM_Yield.csv.csv")
+write.csv(F4, "SVM_Random_F4gv_SRNM_Yield.csv.csv")
+write.csv(F5, "SVM_Random_F5gv_SRNM_Yield.csv")
+write.csv(PYT, "SVM_Random_PYT_SRNM_Yield.csv.csv")
+write.csv(AYT, "SVM_Random_AYT_SRNM_Yield.csv")
+write.csv(Variety, "SVM_Random_Variety_SRNM_Yield.csv.csv")
 
 ## list correlations to view model performance##
 cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
-write.csv(cor, "SVM_Random_COR_SR_Yield.csv")
+write.csv(cor, "SVM_Random_COR_SRNM_Yield.csv")
