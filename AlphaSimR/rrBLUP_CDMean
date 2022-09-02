@@ -117,16 +117,16 @@ F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross##
 
 ##Build GS model using F2##
 
-  y = pheno(F2)
-  M = pullSnpGeno(F2)
-  M = M-1
+    y = pheno(F2)
+    M = pullSnpGeno(F2)
+    M = M-1
   
   dim(M) ## tells how large samples should be ##
   dim(y)
   
   ##OPTIMIZE TRN, Rincent et al 2012###
   
-  geno <- t(M) ## transpose so columns are individuals and rows are markers ##
+  geno <- t(M) #must transpose)
   matA1 <- as.matrix(geno) ## turn into matrix ##
   matA1 <- cov(matA1) ## calculate covariance ##
   invA1 <- solve(matA1) ##inverse matrix##
@@ -199,8 +199,11 @@ CDmeanMax1[cpt2-1]=CDmeanSave
 
 SampleOptimiz=Sample1 # SampleOptimiz is the optimized calibration set
 
-genoTrain <- geno[,SampleOptimiz]
-phenoTrain <- y[SampleOptimiz,]
+M <- pullSnpGeno(F2)
+genoTrain <- M[SampleOptimiz,]
+
+y <- pheno(F2)
+phenoTrain <- as.matrix(y[SampleOptimiz,])
  
   BV <- phenoTrain
   
@@ -209,7 +212,6 @@ phenoTrain <- y[SampleOptimiz,]
   markerEffects <- EBVans$u
   
   EBV <- M %*% markerEffects ##multiply markers by estimated effects to getEBV
-  
   
 
 ## Set EBVs using model##
@@ -267,7 +269,7 @@ M_PYT <-pullSnpGeno(PYT)
 G_PYT = M_PYT-1
 EBVPYT <- G_PYT %*% markerEffects
 
-ebv@PYT<- as.matrix(EBVPYT)
+PYT@ebv<- as.matrix(EBVPYT)
 cor5 = cor(gv(PYT),ebv(PYT))
 
 ## select top plants from PYT to form advanced yield trial ##
