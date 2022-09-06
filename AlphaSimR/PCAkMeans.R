@@ -12,13 +12,13 @@ library(factoextra)
 
 geno <- read.csv("simulationGenotypes.csv")
 
-##remove colnames and nownames##
-colnames(newgeno) =NULL
-rownames(newgeno)=NULL
-
 ##remove zero var columns##
 
 newgeno <- geno %>%  select(where(~ n_distinct(.) > 1))
+
+##remove colnames and nownames##
+colnames(newgeno) =NULL
+
 
 ##use PCA function##
 
@@ -39,14 +39,36 @@ fviz_nbclust(PCAselected, kmeans, method = 'silhouette')
 
 k=9
 kmeans_geno = kmeans(PCAselected, centers = k, nstart = 50)
-fviz_cluster(kmeans_geno, data = PCAselected)
+clusters <- fviz_cluster(kmeans_geno, data = PCAselected)
+clusters ##to view graph##
 
+clusterData <- clusters$data
 
-##plot##
-ggbiplot(PCA) #will plot by PCA1 and PCA2
+clusterData <- clusterData[order(clusterData$cluster),]
 
-##plot and color by a variable##
-ggbiplot(PCA, groups=srdata$CLASS)
+cluster1 <- clusterData[clusterData$cluster==1,]
+cluster2 <- clusterDate[clusterDate$cluster==2,]
+cluster3 <- clusterDate[clusterDate$cluster==3,]
+cluster4 <- clusterDate[clusterDate$cluster==4,]
+cluster5 <- clusterDate[clusterDate$cluster==5,]
+cluster6 <- clusterDate[clusterDate$cluster==6,]
+cluster7 <- clusterDate[clusterDate$cluster==7,]
+cluster8 <- clusterDate[clusterDate$cluster==8,]
+cluster9 <- clusterDate[clusterDate$cluster==9,]
 
-##plot and show ellipses##
-ggbiplot(PCA, ellipse=TRUE, groups=srdata$CLASS)
+trn1 <- cluster1[sample(0.3*nrow(cluster1)),]
+trn2 <- cluster2[sample(0.3*nrow(cluster2)),]
+trn3 <- cluster3[sample(0.3*nrow(cluster3)),]
+trn4 <- cluster4[sample(0.3*nrow(cluster4)),]
+trn5 <- cluster5[sample(0.3*nrow(cluster5)),]
+trn6 <- cluster6[sample(0.3*nrow(cluster6)),]
+trn7 <- cluster7[sample(0.3*nrow(cluster7)),]
+trn8 <- cluster8[sample(0.3*nrow(cluster8)),]
+trn9 <- cluster9[sample(0.3*nrow(cluster9)),]
+TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
+
+write.csv(TRN, "TRNpca.csv")
+TRN <- (read.csv("TRNpca.csv"))
+TRNset <- TRN[,1]
+
+optimTRN <- geno[TRNset,]
