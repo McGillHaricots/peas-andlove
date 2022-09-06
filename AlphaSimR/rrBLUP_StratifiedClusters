@@ -1,0 +1,301 @@
+## load required packages ##
+
+library(AlphaSimR)
+library(readxl)
+library(writexl)
+library(rrBLUP)
+library(devtools)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+
+## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
+
+genotypes <- as.data.frame(read_xlsx("SR_geno.xlsx"))
+genotypes <- genotypes[1:1000,]
+
+
+## must be in 0 1 coding. write and reload new excel file to avoid class incompatibility later ##
+
+genotypes[genotypes==1] <- 0
+genotypes[genotypes==2] <- 1
+write_xlsx(genotypes, "SRAlphaGeno.xlsx")
+genotypes <- as.data.frame(read_xlsx("SRAlphaGeno.xlsx"))
+rownames(genotypes) = NULL
+colnames(genotypes) = NULL
+
+## read in map , must be in Morgans ##
+
+genomap <- read_xlsx("phaseolusmap.xlsx")
+genomap <-genomap[,c(2,5)] ##column 2 has chromosome, 5 has morgans##
+
+## create separate map for each chromosome ##
+
+chr1 <- as.data.frame(genomap[genomap$chr==1,])
+chr2 <- as.data.frame(genomap[genomap$chr==2,])
+chr3 <- as.data.frame(genomap[genomap$chr==3,])
+chr4 <- as.data.frame(genomap[genomap$chr==4,])
+chr5 <- as.data.frame(genomap[genomap$chr==5,])
+chr6 <- as.data.frame(genomap[genomap$chr==6,])
+chr7 <- as.data.frame(genomap[genomap$chr==7,])
+chr8 <- as.data.frame(genomap[genomap$chr==8,])
+chr9 <- as.data.frame(genomap[genomap$chr==9,])
+chr10 <- as.data.frame(genomap[genomap$chr==10,])
+chr11 <- as.data.frame(genomap[genomap$chr==11,])
+
+## list maps for each chromosome. this list will be read by AlphaSim when creating the Founder Pop##
+
+genMap = list(chr1[,2],
+              chr2[,2],
+              chr3[,2],
+              chr4[,2],
+              chr5[,2],
+              chr6[,2],
+              chr7[,2],
+              chr8[,2],
+              chr9[,2],
+              chr10[,2],
+              chr11[,2])
+
+## genotypes must be separated by chromosome ##
+
+chr1geno <- genotypes[,1:nrow(chr1)]
+chr2geno <- genotypes[,(nrow(chr1)+1):(nrow(chr1)+nrow(chr2))]
+chr3geno <- genotypes[,(nrow(chr1)+nrow(chr2) +1):(nrow(chr1)+nrow(chr2)+nrow(chr3))]
+chr4geno <- genotypes[,(nrow(chr1)+nrow(chr2)+nrow(chr3)+1):(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4))]
+chr5geno <- genotypes[,(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+1):(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5))]
+chr6geno <- genotypes[,(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+1):(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6))]
+chr7geno <- genotypes[,(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+1):(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7))]
+chr8geno <- genotypes[,(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7)+1):(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7)+nrow(chr8))]
+chr9geno <- genotypes[,(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7)+nrow(chr8)+1):(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7)+nrow(chr8)+nrow(chr9))]
+chr10geno <- genotypes[,(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7)+nrow(chr8)+nrow(chr9)+1):(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7)+nrow(chr8)+nrow(chr9)+nrow(chr10))]
+chr11geno <- genotypes[,(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7)+nrow(chr8)+nrow(chr9)+nrow(chr10)+1):(nrow(chr1)+nrow(chr2)+nrow(chr3)+nrow(chr4)+nrow(chr5)+nrow(chr6)+nrow(chr7)+nrow(chr8)+nrow(chr9)+nrow(chr10)+nrow(chr11))]
+
+## above genotypes must be matrices ##
+
+chr1geno = as.matrix(chr1geno,nrow=2000,ncol=ncol(chr1geno))
+chr2geno = as.matrix(chr2geno,nrow=2000,ncol=ncol(chr2geno))
+chr3geno = as.matrix(chr3geno,nrow=2000,ncol=ncol(chr3geno))
+chr4geno = as.matrix(chr4geno,nrow=2000,ncol=ncol(chr4geno))
+chr5geno = as.matrix(chr5geno,nrow=2000,ncol=ncol(chr5geno))
+chr6geno = as.matrix(chr6geno,nrow=2000,ncol=ncol(chr6geno))
+chr7geno = as.matrix(chr7geno,nrow=2000,ncol=ncol(chr7geno))
+chr8geno = as.matrix(chr8geno,nrow=2000,ncol=ncol(chr8geno))
+chr9geno = as.matrix(chr9geno,nrow=2000,ncol=ncol(chr9geno))
+chr10geno = as.matrix(chr10geno,nrow=2000,ncol=ncol(chr10geno))
+chr11geno = as.matrix(chr11geno,nrow=2000,ncol=ncol(chr11geno))
+
+## list genotypes matrices. this file will be read by AlphaSim when creating the Founder Pop ##
+
+haplotypes = list(chr1geno,chr2geno, chr3geno, chr4geno,chr5geno,chr6geno,chr7geno,chr8geno,chr9geno,chr10geno,chr11geno)
+
+## confirm geno and map are the same length ##
+length(genMap)
+length(haplotypes)
+
+########### SIMULATION STARTS HERE #########################
+
+## establish founder population ##
+
+founderPop = newMapPop(genMap, 
+                       haplotypes, 
+                       inbred = FALSE, 
+                       ploidy = 2L)
+
+
+##define simulation parameters##
+
+SP <- SimParam$new(founderPop)
+SP$addTraitADE(10, mean=1350)
+SP$setVarE(h2=0.25)
+SP$addSnpChip(57)
+
+## generate parents and cross to form F1 ##
+
+Parents = newPop(founderPop)
+F1 = randCross(Parents, 100) ##randomly cross 0 parents##
+
+## self and bulk F1 to form F2 ##
+
+F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross## 
+
+##Build GS model using F2##
+
+  y = pheno(F2)
+  M = pullSnpGeno(F2)
+  M = M-1
+  
+  newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
+  
+  colnames(newgeno) =NULL
+  
+  PCAgeno <- prcomp(newgeno, center=TRUE, scale=TRUE) ##take out categorical columns##
+  
+  PCAselected = as.data.frame(-PCAgeno$x[,1:3])
+  
+  silhouette <- fviz_nbclust(PCAselected, kmeans, method = 'silhouette')
+  silhouette$data ##largest value tells how many clusters are optimal ##
+  
+  k=9
+  kmeans_geno = kmeans(PCAselected, centers = k, nstart = 50)
+  clusters <- fviz_cluster(kmeans_geno, data = PCAselected)
+  
+  clusterData <- clusters$data
+
+  clusterData <- clusterData[order(clusterData$cluster),]
+
+  cluster1 <- clusterData[clusterData$cluster==1,]
+  cluster2 <- clusterDate[clusterDate$cluster==2,]
+  cluster3 <- clusterDate[clusterDate$cluster==3,]
+  cluster4 <- clusterDate[clusterDate$cluster==4,]
+  cluster5 <- clusterDate[clusterDate$cluster==5,]
+  cluster6 <- clusterDate[clusterDate$cluster==6,]
+  cluster7 <- clusterDate[clusterDate$cluster==7,]
+  cluster8 <- clusterDate[clusterDate$cluster==8,]
+  cluster9 <- clusterDate[clusterDate$cluster==9,]
+
+  trn1 <- cluster1[sample(0.3*nrow(cluster1)),]
+  trn2 <- cluster2[sample(0.3*nrow(cluster2)),]
+  trn3 <- cluster3[sample(0.3*nrow(cluster3)),]
+  trn4 <- cluster4[sample(0.3*nrow(cluster4)),]
+  trn5 <- cluster5[sample(0.3*nrow(cluster5)),]
+  trn6 <- cluster6[sample(0.3*nrow(cluster6)),]
+  trn7 <- cluster7[sample(0.3*nrow(cluster7)),]
+  trn8 <- cluster8[sample(0.3*nrow(cluster8)),]
+  trn9 <- cluster9[sample(0.3*nrow(cluster9)),]
+  TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
+
+   write.csv(TRN, "TRNpca.csv")
+   TRN <- (read.csv("TRNpca.csv"))
+   TRN <- TRN[,1]
+   
+   OptimGeno <- M[TRN,]
+   OptimPheno <- y[TRN,]
+  
+  BV <- OptimPheno
+  
+  EBVans <-mixed.solve(BV, Z=optimGeno, K=NULL, SE=FALSE, return.Hinv=FALSE)
+  
+  markerEffects <- EBVans$u
+  
+  EBV <- M %*% markerEffects ##multiply markers by estimated effects to getEBV
+  
+  
+
+## Set EBVs using model##
+F2@ebv <- as.matrix(EBV)
+
+cor1 = cor(gv(F2), ebv(F2))
+
+## select top families to form F3 ##
+
+F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
+
+##set EBV using BLUP model##
+M_F3 <-pullSnpGeno(F3)
+G_F3 = M_F3-1
+EBVF3 <- G_F3 %*% markerEffects
+
+F3@ebv <- as.matrix(EBVF3)
+
+cor2 = cor(gv(F3),ebv(F3))
+
+##select top families from F3 to form F4 ##
+
+F4 = selectFam(F3, 30, use="ebv") 
+
+##set EBV using BLUP model##
+M_F4 <-pullSnpGeno(F4)
+G_F4 = M_F4-1
+EBVF4 <- G_F4 %*% markerEffects
+
+F4@ebv <- as.matrix(EBVF4)
+
+cor3= cor(gv(F4), ebv(F4))
+
+## select top families from F4 to form F5 ##
+
+F5 = selectFam(F4, 15, use="ebv")
+
+
+##set EBV using BLUP model##
+M_F5 <-pullSnpGeno(F5)
+G_F5 = M_F5-1
+EBVF5 <- G_F5 %*% markerEffects
+
+F5@ebv <- as.matrix(EBVF5)
+
+cor4 = cor(gv(F5),ebv(F5))
+
+## select top individual from F5 to form preliminary yield trial ##
+
+PYT = selectWithinFam(F5, 4, use="ebv") 
+
+
+##set EBV using BLUP model##
+M_PYT <-pullSnpGeno(PYT)
+G_PYT = M_PYT-1
+EBVPYT <- G_PYT %*% markerEffects
+
+ebv@PYT<- as.matrix(EBVPYT)
+cor5 = cor(gv(PYT),ebv(PYT))
+
+## select top plants from PYT to form advanced yield trial ##
+
+AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+
+
+##set EBV using BLUP model##
+M_AYT <-pullSnpGeno(AYT)
+G_AYT = M_AYT-1
+EBVAYT <- G_AYT %*% markerEffects
+
+AYT@ebv <- as.matrix(EBVAYT)
+
+cor6 = cor(gv(AYT),ebv(AYT))
+
+## select top plants to form variety ##
+Variety = selectInd(AYT, 1, use="ebv")
+
+## pull genetic value for each generation and write results ##
+
+gv = list(Parents = mean(gv(Parents)),
+          F1 = mean(gv(F1)),
+          F2 = mean(gv(F2)),
+          F3 = mean(gv(F3)),
+          F4 = mean(gv(F4)),
+          F5 = mean(gv(F5)),
+          PYT = mean(gv(PYT)),
+          AYT = mean(gv(AYT)),
+          Variety = mean(gv(Variety)))
+
+F1 <- gv(F1)
+F2 <- gv(F2)
+F3 <- gv(F3)
+F4 <- gv(F4)
+F5 <- gv(F5)
+PYT <- gv(PYT)
+AYT <- gv(AYT)
+Variety <- gv(Variety)
+gv <- as.data.frame(gv)
+
+###list correlations to view model performacne ##
+cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
+
+## write files - naming convention: "model_trainingSet_descriptor_populationType_trait.csv" ###
+
+write.csv(gv, "BLUP_Random_avegv_SR_Yield.csv")
+write.csv(F1, "BLUP_Random_F1gv_SR_Yield.csv")
+write.csv(F2, "BLUP_Random_F2gv_SR_Yield.csv.csv")
+write.csv(F3, "BLUP_Random_F3gv_SR_Yield.csv.csv")
+write.csv(F4, "BLUP_Random_F4gv_SR_Yield.csv.csv")
+write.csv(F5, "BLUP_Random_F5gv_SR_Yield.csv")
+write.csv(PYT, "BLUP_Random_PYT_SR_Yield.csv.csv")
+write.csv(AYT, "BLUP_Random_AYT_SR_Yield.csv")
+write.csv(Variety, "BLUP_Random_Variety_SR_Yield.csv")
+
+write.csv(cor, "BLUP_Random_COR_SR_Yield.csv")
