@@ -1,3 +1,6 @@
+### This script will carry out a GS breeding strategy on the population you provide in the genotype file. 
+### The GS model is rrBLUP and the training set is determined randomly ###
+
 ## load required packages ##
 
 library(AlphaSimR)
