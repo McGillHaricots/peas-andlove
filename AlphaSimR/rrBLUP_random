@@ -201,7 +201,7 @@ M_PYT <-pullSnpGeno(PYT)
 G_PYT = M_PYT-1
 EBVPYT <- G_PYT %*% markerEffects
 
-ebv@PYT<- as.matrix(EBVPYT)
+PYT@ebv <- as.matrix(EBVPYT)
 cor5 = cor(gv(PYT),ebv(PYT))
 
 ## select top plants from PYT to form advanced yield trial ##
