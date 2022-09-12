@@ -332,7 +332,7 @@ AYT@ebv= as.matrix(predictionsAYT)
 ## select top plants to form variety ##
 Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
 
-## pull genetic value for each generation ##
+## pull genetic value for each generation to write results ##
 
 gv = list(Parents = mean(gv(Parents)),
           F1 = mean(gv(F1)),
@@ -344,30 +344,20 @@ gv = list(Parents = mean(gv(Parents)),
           AYT = mean(gv(AYT)),
           Variety = mean(gv(Variety)))
 
-F1 <- gv(F1)
-F2 <- gv(F2)
-F3 <- gv(F3)
-F4 <- gv(F4)
-F5 <- gv(F5)
-PYT <- gv(PYT)
-AYT <- gv(AYT)
-Variety <- gv(Variety)
-gv <- as.data.frame(gv)
+F1gv <- gv(F1)
+F2gv <- gv(F2)
+F3gv <- gv(F3)
+F4gv <- gv(F4)
+F5gv <- gv(F5)
+PYTgv <- gv(PYT)
+AYTgv <- gv(AYT)
+Varietygv <- gv(Variety)
 
-## list correlations to view model performance##
-cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
-
-
-
-## write files - naming convention: "model_trainingSet_descriptor_populationType_trait.csv" ###
-
-write.csv(gv, "RF_Random_avegv_SR_Yield.csv")
-write.csv(F1, "RF_Random_F1gv_SR_Yield.csv")
-write.csv(F2, "RF_Random_F2gv_SR_Yield.csv.csv")
-write.csv(F3, "RF_Random_F3gv_SR_Yield.csv.csv")
-write.csv(F4, "RF_Random_F4gv_SR_Yield.csv.csv")
-write.csv(F5, "RF_Random_F5gv_SR_Yield.csv")
-write.csv(PYT, "RF_Random_PYT_SR_Yield.csv.csv")
-write.csv(AYT, "RF_Random_AYT_SR_Yield.csv")
-write.csv(Variety, "RF_Random_Variety_SR_Yield.csv.csv")
-write.csv(cor, "RF_Random_COR_SR_Yield.csv")
+###list correlations to view model performacne ##
+corMat <- matrix(nrow=6, ncol=1)
+corMat[1,] <- cor1
+corMat[2,] <- cor2
+corMat[3,] <- cor3
+corMat[4,] <- cor4
+corMat[5,] <- cor5
+corMat[6,] <- cor6
