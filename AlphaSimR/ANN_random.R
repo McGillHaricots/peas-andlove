@@ -321,20 +321,33 @@ AYT@ebv = as.matrix(EBV)
 ## select top plants to form variety ##
 Variety = selectInd(AYT, 1, use="ebv")
 
-## pull genetic value for each generation ##
+## pull genetic value for each generation to write results ##
 
-gv = list(Parents = gv(Parents),
-          F1 = gv(F1),
-          F2 = gv(F2),
-          F3 = gv(F3),
-          F4 = gv(F4),
-          F5 = gv(F5),
-          PYT = gv(PYT),
-          AYT = gv(AYT),
-          Variety = gv(Variety))
+gv = list(Parents = mean(gv(Parents)),
+          F1 = mean(gv(F1)),
+          F2 = mean(gv(F2)),
+          F3 = mean(gv(F3)),
+          F4 = mean(gv(F4)),
+          F5 = mean(gv(F5)),
+          PYT = mean(gv(PYT)),
+          AYT = mean(gv(AYT)),
+          Variety = mean(gv(Variety)))
 
-gv <- as.data.frame(gv)
-write.csv(gv, "gv_sy_sr_rrblup.csv")
+F1gv <- gv(F1)
+F2gv <- gv(F2)
+F3gv <- gv(F3)
+F4gv <- gv(F4)
+F5gv <- gv(F5)
+PYTgv <- gv(PYT)
+AYTgv <- gv(AYT)
+Varietygv <- gv(Variety)
 
-cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
-write.csv(cor, "cor_sy_sr_ssblup.csv")
+###list correlations to view model performacne ##
+corMat <- matrix(nrow=6, ncol=1)
+corMat[1,] <- cor1
+corMat[2,] <- cor2
+corMat[3,] <- cor3
+corMat[4,] <- cor4
+corMat[5,] <- cor5
+corMat[6,] <- cor6
+
