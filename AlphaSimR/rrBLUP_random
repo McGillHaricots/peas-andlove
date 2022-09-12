@@ -233,30 +233,19 @@ gv = list(Parents = mean(gv(Parents)),
           AYT = mean(gv(AYT)),
           Variety = mean(gv(Variety)))
 
-F1 <- gv(F1)
-F2 <- gv(F2)
-F3 <- gv(F3)
-F4 <- gv(F4)
-F5 <- gv(F5)
-PYT <- gv(PYT)
-AYT <- gv(AYT)
-Variety <- gv(Variety)
-gv <- as.data.frame(gv)
+F1gv <- gv(F1)
+F2gv <- gv(F2)
+F3gv <- gv(F3)
+F4gv <- gv(F4)
+F5gv <- gv(F5)
+PYTgv <- gv(PYT)
+AYTgv <- gv(AYT)
+Varietygv <- gv(Variety)
 
 ###list correlations to view model performacne ##
 cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
 
 ## write files - naming convention: "model_trainingSet_descriptor_populationType_trait.csv" ###
 
-write.csv(gv, "BLUP_Random_avegv_SR_Yield.csv")
-write.csv(F1, "BLUP_Random_F1gv_SR_Yield.csv")
-write.csv(F2, "BLUP_Random_F2gv_SR_Yield.csv.csv")
-write.csv(F3, "BLUP_Random_F3gv_SR_Yield.csv.csv")
-write.csv(F4, "BLUP_Random_F4gv_SR_Yield.csv.csv")
-write.csv(F5, "BLUP_Random_F5gv_SR_Yield.csv")
-write.csv(PYT, "BLUP_Random_PYT_SR_Yield.csv.csv")
-write.csv(AYT, "BLUP_Random_AYT_SR_Yield.csv")
-write.csv(Variety, "BLUP_Random_Variety_SR_Yield.csv")
 
-write.csv(cor, "BLUP_Random_COR_SR_Yield.csv")
 
