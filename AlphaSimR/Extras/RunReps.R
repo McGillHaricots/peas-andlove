@@ -74,7 +74,7 @@ repeat{
   
   ##write files
   write.csv(allResults, "BLUP_Random_Allgvs_SR_Yield.csv")
-  write.csv(corResults, "BLUP_Random_Correlatiin_SR_Yield.csv")
+  write.csv(corResults, "BLUP_Random_Correlation_SR_Yield.csv")
   
            
   
