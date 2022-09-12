@@ -243,7 +243,13 @@ AYTgv <- gv(AYT)
 Varietygv <- gv(Variety)
 
 ###list correlations to view model performacne ##
-cor = list(cor1, cor2, cor3, cor4, cor5, cor6)
+corMat <- matrix(nrow=6, ncol=1)
+corMat[1,] <- cor1
+corMat[2,] <- cor2
+corMat[3,] <- cor3
+corMat[4,] <- cor4
+corMat[5,] <- cor5
+corMat[6,] <- cor6
 
 ## write files - naming convention: "model_trainingSet_descriptor_populationType_trait.csv" ###
 
