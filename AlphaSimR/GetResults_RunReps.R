@@ -12,7 +12,6 @@ nIndF5 = 75
 nIndPYT = 60
 nIndAYT = 20
 nIndVariety = 1
-nGen = 9
 nModels = 6
 nReps = 25
 
@@ -25,7 +24,6 @@ F5results <- matrix(nrow=nIndF5, ncol=nReps)
 PYTresults <- matrix(nrow=nIndPYT, ncol=nReps) 
 AYTresults <- matrix(nrow=nIndAYT, ncol=nReps)
 Varietyresults <- matrix(nrow=nIndVariety, ncol=nReps) 
-gvAveResults <- matrix(nrow=nGen, ncol=nReps)
 corResults <- matrix(nrow=nModels, ncol=nReps)
 
 ## Run repeat loop to run reps ##
