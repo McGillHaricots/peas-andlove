@@ -16,7 +16,7 @@ library(factoextra)
 
 ## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
 
-genotypes <- as.data.frame(read_xlsx("SR_geno.xlsx"))
+genotypes <- as.data.frame(read_xlsx("SRN_geno.xlsx"))
 genotypes <- genotypes[1:1000,]
 
 
@@ -126,66 +126,68 @@ F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross##
 
 ##Build GS model using F2##
 
-  y = pheno(F2)
-  M = pullSnpGeno(F2)
-  M = M-1
-  
-  newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
-  
-  colnames(newgeno) =NULL
-  
-  PCAgeno <- prcomp(newgeno, center=TRUE, scale=TRUE) ##take out categorical columns##
-  
-  PCAselected = as.data.frame(-PCAgeno$x[,1:3])
-  
-  silhouette <- fviz_nbclust(PCAselected, kmeans, method = 'silhouette')
-  silhouette$data ##largest value tells how many clusters are optimal ##
-  
-  k=9
-  kmeans_geno = kmeans(PCAselected, centers = k, nstart = 50)
-  clusters <- fviz_cluster(kmeans_geno, data = PCAselected)
-  
-  clusterData <- clusters$data
+y = pheno(F2)
+M = pullSnpGeno(F2)
+M = as.data.frame(M)
 
-  clusterData <- clusterData[order(clusterData$cluster),]
+newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
 
-  cluster1 <- clusterData[clusterData$cluster==1,]
-  cluster2 <- clusterDate[clusterDate$cluster==2,]
-  cluster3 <- clusterDate[clusterDate$cluster==3,]
-  cluster4 <- clusterDate[clusterDate$cluster==4,]
-  cluster5 <- clusterDate[clusterDate$cluster==5,]
-  cluster6 <- clusterDate[clusterDate$cluster==6,]
-  cluster7 <- clusterDate[clusterDate$cluster==7,]
-  cluster8 <- clusterDate[clusterDate$cluster==8,]
-  cluster9 <- clusterDate[clusterDate$cluster==9,]
+colnames(newgeno) =NULL
 
-  trn1 <- cluster1[sample(0.3*nrow(cluster1)),]
-  trn2 <- cluster2[sample(0.3*nrow(cluster2)),]
-  trn3 <- cluster3[sample(0.3*nrow(cluster3)),]
-  trn4 <- cluster4[sample(0.3*nrow(cluster4)),]
-  trn5 <- cluster5[sample(0.3*nrow(cluster5)),]
-  trn6 <- cluster6[sample(0.3*nrow(cluster6)),]
-  trn7 <- cluster7[sample(0.3*nrow(cluster7)),]
-  trn8 <- cluster8[sample(0.3*nrow(cluster8)),]
-  trn9 <- cluster9[sample(0.3*nrow(cluster9)),]
-  TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
+PCAgeno <- prcomp(newgeno, center=TRUE, scale=TRUE) ##take out categorical columns##
 
-   write.csv(TRN, "TRNpca.csv")
-   TRN <- (read.csv("TRNpca.csv"))
-   TRN <- TRN[,1]
-   
-   OptimGeno <- M[TRN,]
-   OptimPheno <- y[TRN,]
-  
-  BV <- OptimPheno
-  
-  EBVans <-mixed.solve(BV, Z=optimGeno, K=NULL, SE=FALSE, return.Hinv=FALSE)
-  
-  markerEffects <- EBVans$u
-  
-  EBV <- M %*% markerEffects ##multiply markers by estimated effects to getEBV
-  
-  
+PCAselected = as.data.frame(-PCAgeno$x[,1:3])
+
+silhouette <- fviz_nbclust(PCAselected, kmeans, method = 'silhouette')
+silhouette$data ##largest value tells how many clusters are optimal ##
+
+k=9
+kmeans_geno = kmeans(PCAselected, centers = k, nstart = 50)
+clusters <- fviz_cluster(kmeans_geno, data = PCAselected)
+
+clusterData <- clusters$data
+
+clusterData <- clusterData[order(clusterData$cluster),]
+
+cluster1 <- clusterData[clusterData$cluster==1,]
+cluster2 <- clusterData[clusterData$cluster==2,]
+cluster3 <- clusterData[clusterData$cluster==3,]
+cluster4 <- clusterData[clusterData$cluster==4,]
+cluster5 <- clusterData[clusterData$cluster==5,]
+cluster6 <- clusterData[clusterData$cluster==6,]
+cluster7 <- clusterData[clusterData$cluster==7,]
+cluster8 <- clusterData[clusterData$cluster==8,]
+cluster9 <- clusterData[clusterData$cluster==9,]
+
+trn1 <- cluster1[sample(0.7*nrow(cluster1)),]
+trn2 <- cluster2[sample(0.7*nrow(cluster2)),]
+trn3 <- cluster3[sample(0.7*nrow(cluster3)),]
+trn4 <- cluster4[sample(0.7*nrow(cluster4)),]
+trn5 <- cluster5[sample(0.7*nrow(cluster5)),]
+trn6 <- cluster6[sample(0.7*nrow(cluster6)),]
+trn7 <- cluster7[sample(0.7*nrow(cluster7)),]
+trn8 <- cluster8[sample(0.7*nrow(cluster8)),]
+trn9 <- cluster9[sample(0.7*nrow(cluster9)),]
+TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
+
+TRN <- TRN[,1]
+
+rownames(M) <- c(601:1100)
+OptimGeno <- M[TRN,]
+y <- as.data.frame(y)
+OptimPheno <- y[TRN,]
+
+BV <- OptimPheno
+
+EBVans <-mixed.solve(BV, Z=OptimGeno, K=NULL, X=NULL, SE=FALSE, return.Hinv=FALSE)
+
+markerEffects <- matrix(EBVans$u)
+
+M <- as.matrix(M)
+
+EBV <- M %*% markerEffects ##multiply markers by estimated effects to getEBV
+
+
 
 ## Set EBVs using model##
 F2@ebv <- as.matrix(EBV)
@@ -242,7 +244,7 @@ M_PYT <-pullSnpGeno(PYT)
 G_PYT = M_PYT-1
 EBVPYT <- G_PYT %*% markerEffects
 
-ebv@PYT<- as.matrix(EBVPYT)
+PYT@ebv<- as.matrix(EBVPYT)
 cor5 = cor(gv(PYT),ebv(PYT))
 
 ## select top plants from PYT to form advanced yield trial ##
@@ -293,4 +295,3 @@ corMat[3,] <- cor3
 corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
-
