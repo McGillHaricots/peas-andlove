@@ -104,10 +104,10 @@ founderPop = newMapPop(genMap,
 
 ##define simulation parameters##
 
-SP <- SimParam$new(founderPop)
-SP$addTraitADE(5, mean=35)
-SP$setVarE(h2=0.65)
-SP$addSnpChip(57)
+ SP <- SimParam$new(founderPop)
+ SP$addTraitA(5,mean=35)
+ SP$setVarE(h2=0.7)
+ SP$addSnpChip(40)
 
 ## generate parents and cross to form F1 ##
 
