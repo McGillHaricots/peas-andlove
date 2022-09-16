@@ -204,7 +204,7 @@ while (cpt2<800) {  # Make sure that 800 is enough in your case (that you reache
 
 TRN=Sample1 # SampleOptimiz is the optimized calibration set
 
-M <- as.data.frame(M)
+M <- pullSnpGeno(F2)
 genoTrain <- M[SampleOptimiz,]
 cd_Mean_genoTrain <- na.omit(cd_Mean_genoTrain)
 
