@@ -1,13 +1,15 @@
 ### This script will carry out a GS breeding strategy on the population you provide in the genotype file. 
 ### The GS model is Support Vector Machine and the training set is determined randomly ###
 
+##Be sure to load correct files for population and for TRN set
+
 ## load required packages ##
 
 library(AlphaSimR)
 library(readxl)
 library(writexl)
 library(rrBLUP)
-library(dplyr)
+
 
 library(e1071)
 
@@ -112,7 +114,7 @@ SP$setVarE(h2=0.25)
 SP$addSnpChip(57)
 
 ## generate parents and cross to form F1 ##
-
+set.seed(123)
 Parents = newPop(founderPop)
 F1 = randCross(Parents, 100) 
 
@@ -120,93 +122,11 @@ F1 = randCross(Parents, 100)
 
 F2 = self(F1, nProgeny = 5) 
 
-y = pheno(F2)
-M = pullSnpGeno(F2)
-M = M-1
+SampleOptimiz <- read.csv("TRN_SRNM.csv") ##This file was created by running the Rincent et al 2012 optimization algorithm##
+SampleOptimiz <- SampleOptimiz[,2]
 
-dim(M) ## tells how large samples should be ##
-dim(y) 
-
-##OPTIMIZE TRN, Rincent et al 2012###
-
-geno <- t(M) #must transpose)
-matA1 <- as.matrix(geno) ## turn into matrix ##
-matA1 <- cov(matA1) ## calculate covariance ##
-invA1 <- solve(matA1) ##inverse matrix##
-
-Nind=nrow(matA1) # total number of individuals
-nindrep=400 # Choose a size for your calibration set
-VarG <- genicVarG(F2)
-VarE <- 0.25
-lambda = VarE/VarG
-
-# This function creates the matrix of contrast between each of the individual not in the calibration set and the mean of the population
-contrasteNonPheno=function(NotSampled_f,Nind_f,Nind_in_Sample_f)
-{
-  mat=matrix(-1/Nind_f,Nind_f,Nind_f-Nind_in_Sample_f)
-  for (i in 1:ncol(mat)) {
-    mat[NotSampled_f[i],i]=1-1/Nind_f
-  }
-  return(mat)
-}
-
-Nind_in_Sample=nindrep
-
-#Design matrices
-Ident<-diag(Nind_in_Sample)
-X<-rep(1,Nind_in_Sample)
-M<-Ident- (X%*%solve(t(X)%*%X) %*% t(X) )
-
-Sample1<-sample(Nind,Nind_in_Sample) #Calibration set initialization
-SaveSample=Sample1
-NotSampled1<-seq(1:Nind)
-NotSampled<-NotSampled1[-Sample1] # Initial validation set
-
-Z=matrix(0,Nind_in_Sample,Nind)
-for (i in 1:length(Sample1)) { Z[i,Sample1[i]]=1 } 
-
-T<-contrasteNonPheno(NotSampled,Nind,Nind_in_Sample)   # T is the matrix of contrasts
-
-# Calculate of CDmean of the initial set
-matCD<-(t(T)%*%(matA1-lambda*solve(t(Z)%*%M%*%Z + lambda*invA1))%*%T)/(t(T)%*%matA1%*%T)
-CD=diag(matCD)
-CDmeanSave=mean(CD)
-
-CDmeanMax1=rep(NA,800)
-
-# Exchange algorithm (maximize CDmean)
-cpt2=1
-cpt=0
-while (cpt2<800) {  # Make sure that 800 is enough in your case (that you reached a plateau), for this look at CDmeanMax1.
-  NotSampled=NotSampled1[-Sample1] 
-  cpt2=cpt2+1
-  # Remove one individual (randomly choosen) from the sample :
-  Sample2=sample(Sample1,1)
-  # Select one individual (randomly choosen) from the individuals that are not in the Calibration set :
-  Sample3=sample(NotSampled,1)
-  # New calibration set :
-  Sample4=c(Sample3,Sample1[Sample1!=Sample2])
-  # Calculate the mean CD of the new calibration set :
-  Z=matrix(0,Nind_in_Sample,Nind)
-  for (i in 1:length(Sample4)) { Z[i,Sample4[i]]=1 } 
-  NotSampled=NotSampled1[-Sample4] 
-  T<-contrasteNonPheno(NotSampled,Nind,Nind_in_Sample)
-  
-  matCD<-(t(T)%*%(matA1-lambda*solve(t(Z)%*%M%*%Z + lambda*invA1))%*%T)/(t(T)%*%matA1%*%T)
-  CD=diag(matCD)
-  
-  if (mean(CD)>CDmeanSave ) { Sample1=Sample4 # Accept the new Calibration set if CDmean is increased, reject otherwise.
-  CDmeanSave=mean(CD)  
-  cpt=0 } else { cpt=cpt+1 
-  }
-  CDmeanMax1[cpt2-1]=CDmeanSave
-}  #Fin du while
-
-TRN=Sample1 # SampleOptimiz is the optimized calibration set
-
-M <- pullSnpGeno(F2)
+M <- as.data.frame(pullSnpGeno(F2))
 genoTrain <- M[SampleOptimiz,]
-cd_Mean_genoTrain <- na.omit(cd_Mean_genoTrain)
 
 y <- pheno(F2)
 y <- as.data.frame(y)
@@ -287,11 +207,9 @@ cor4 = cor(predictionsF5, gv(F5))
 
 F5@ebv= as.matrix(predictionsF5)
 
-
 ## select top families from F5 to form preliminary yield trial ##
 
 PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)  
-
 
 ##RUN THE SVM MODEL##
 
@@ -306,7 +224,6 @@ cor5 = cor(predictionsPYT, gv(PYT))
 
 PYT@ebv= as.matrix(predictionsPYT)
 
-
 ## select top plants from PYT to form advanced yield trial ##
 
 AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
@@ -319,7 +236,6 @@ colnames(genoAYT) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsAYT = predict(fit,genoAYT)
 
-
 cor6 = cor(predictionsAYT, gv(AYT))
 
 #set ebvs#
@@ -331,24 +247,14 @@ Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
 
 ## pull genetic value for each generation ##
 
-gv = list(Parents = mean(gv(Parents)),
-          F1 = mean(gv(F1)),
-          F2 = mean(gv(F2)),
-          F3 = mean(gv(F3)),
-          F4 = mean(gv(F4)),
-          F5 = mean(gv(F5)),
-          PYT = mean(gv(PYT)),
-          AYT = mean(gv(AYT)),
-          Variety = mean(gv(Variety)))
-
-F1gv <- gv(F1)
-F2gv <- gv(F2)
-F3gv <- gv(F3)
-F4gv <- gv(F4)
-F5gv <- gv(F5)
-PYTgv <- gv(PYT)
-AYTgv <- gv(AYT)
-Varietygv <- gv(Variety)
+F1gv <- as.numeric(gv(F1))
+F2gv <- as.numeric(gv(F2))
+F3gv <- as.numeric(gv(F3))
+F4gv <- as.numeric(gv(F4))
+F5gv <- as.numeric(gv(F5))
+PYTgv <- as.numeric(gv(PYT))
+AYTgv <- as.numeric(gv(AYT))
+Varietygv <- as.numeric(gv(Variety))
 
 ###list correlations to view model performacne ##
 corMat <- matrix(nrow=6, ncol=1)
