@@ -1,5 +1,5 @@
 ### This script will carry out a GS breeding strategy on the population you provide in the genotype file. 
-### The GS model is Support Vector Machine and the training set is determined by CDMean ###
+### The GS model is Support Vector Machine and the training set is determined randomly ###
 
 ## load required packages ##
 
@@ -120,34 +120,34 @@ F1 = randCross(Parents, 100)
 
 F2 = self(F1, nProgeny = 5) 
 
-    y = pheno(F2)
-    M = pullSnpGeno(F2)
-    M = M-1
-  
-  dim(M) ## tells how large samples should be ##
-  dim(y)
-  
-  ##OPTIMIZE TRN, Rincent et al 2012###
-  
-  geno <- t(M) #must transpose)
-  matA1 <- as.matrix(geno) ## turn into matrix ##
-  matA1 <- cov(matA1) ## calculate covariance ##
-  invA1 <- solve(matA1) ##inverse matrix##
-  
-  Nind=nrow(matA1) # total number of individuals
-  nindrep=400 # Choose a size for your calibration set
-  VarG <- genicVarG(F2)
-  VarE <- 0.25
-  lambda = VarE/VarG
-  
-  # This function creates the matrix of contrast between each of the individual not in the calibration set and the mean of the population
+y = pheno(F2)
+M = pullSnpGeno(F2)
+M = M-1
+
+dim(M) ## tells how large samples should be ##
+dim(y) 
+
+##OPTIMIZE TRN, Rincent et al 2012###
+
+geno <- t(M) #must transpose)
+matA1 <- as.matrix(geno) ## turn into matrix ##
+matA1 <- cov(matA1) ## calculate covariance ##
+invA1 <- solve(matA1) ##inverse matrix##
+
+Nind=nrow(matA1) # total number of individuals
+nindrep=400 # Choose a size for your calibration set
+VarG <- genicVarG(F2)
+VarE <- 0.25
+lambda = VarE/VarG
+
+# This function creates the matrix of contrast between each of the individual not in the calibration set and the mean of the population
 contrasteNonPheno=function(NotSampled_f,Nind_f,Nind_in_Sample_f)
 {
-mat=matrix(-1/Nind_f,Nind_f,Nind_f-Nind_in_Sample_f)
-for (i in 1:ncol(mat)) {
-mat[NotSampled_f[i],i]=1-1/Nind_f
-}
-return(mat)
+  mat=matrix(-1/Nind_f,Nind_f,Nind_f-Nind_in_Sample_f)
+  for (i in 1:ncol(mat)) {
+    mat[NotSampled_f[i],i]=1-1/Nind_f
+  }
+  return(mat)
 }
 
 Nind_in_Sample=nindrep
@@ -178,35 +178,35 @@ CDmeanMax1=rep(NA,800)
 cpt2=1
 cpt=0
 while (cpt2<800) {  # Make sure that 800 is enough in your case (that you reached a plateau), for this look at CDmeanMax1.
- NotSampled=NotSampled1[-Sample1] 
-cpt2=cpt2+1
-# Remove one individual (randomly choosen) from the sample :
-Sample2=sample(Sample1,1)
-# Select one individual (randomly choosen) from the individuals that are not in the Calibration set :
-Sample3=sample(NotSampled,1)
-# New calibration set :
-Sample4=c(Sample3,Sample1[Sample1!=Sample2])
-# Calculate the mean CD of the new calibration set :
-Z=matrix(0,Nind_in_Sample,Nind)
-for (i in 1:length(Sample4)) { Z[i,Sample4[i]]=1 } 
-NotSampled=NotSampled1[-Sample4] 
-T<-contrasteNonPheno(NotSampled,Nind,Nind_in_Sample)
-
-matCD<-(t(T)%*%(matA1-lambda*solve(t(Z)%*%M%*%Z + lambda*invA1))%*%T)/(t(T)%*%matA1%*%T)
-CD=diag(matCD)
-
-if (mean(CD)>CDmeanSave ) { Sample1=Sample4 # Accept the new Calibration set if CDmean is increased, reject otherwise.
-CDmeanSave=mean(CD)  
-cpt=0 } else { cpt=cpt+1 
-}
-CDmeanMax1[cpt2-1]=CDmeanSave
+  NotSampled=NotSampled1[-Sample1] 
+  cpt2=cpt2+1
+  # Remove one individual (randomly choosen) from the sample :
+  Sample2=sample(Sample1,1)
+  # Select one individual (randomly choosen) from the individuals that are not in the Calibration set :
+  Sample3=sample(NotSampled,1)
+  # New calibration set :
+  Sample4=c(Sample3,Sample1[Sample1!=Sample2])
+  # Calculate the mean CD of the new calibration set :
+  Z=matrix(0,Nind_in_Sample,Nind)
+  for (i in 1:length(Sample4)) { Z[i,Sample4[i]]=1 } 
+  NotSampled=NotSampled1[-Sample4] 
+  T<-contrasteNonPheno(NotSampled,Nind,Nind_in_Sample)
+  
+  matCD<-(t(T)%*%(matA1-lambda*solve(t(Z)%*%M%*%Z + lambda*invA1))%*%T)/(t(T)%*%matA1%*%T)
+  CD=diag(matCD)
+  
+  if (mean(CD)>CDmeanSave ) { Sample1=Sample4 # Accept the new Calibration set if CDmean is increased, reject otherwise.
+  CDmeanSave=mean(CD)  
+  cpt=0 } else { cpt=cpt+1 
+  }
+  CDmeanMax1[cpt2-1]=CDmeanSave
 }  #Fin du while
 
-SampleOptimiz=Sample1 # SampleOptimiz is the optimized calibration set
+TRN=Sample1 # SampleOptimiz is the optimized calibration set
 
-M <- pullSnpGeno(F2)
 M <- as.data.frame(M)
 genoTrain <- M[SampleOptimiz,]
+cd_Mean_genoTrain <- na.omit(cd_Mean_genoTrain)
 
 y <- pheno(F2)
 y <- as.data.frame(y)
@@ -214,14 +214,14 @@ phenoTrain <- as.matrix(y[SampleOptimiz,])
 
 Optim_train <- cbind(phenoTrain, genoTrain)
 colnames(Optim_train) <- paste("ID", 1:ncol(Optim_train), sep="")
-                            
-  ##fit model, predict pheno on all markers
-         fit = svm(ID1 ~ ., data = Optim_train, kernel = "radial", cost = 10, scale = FALSE)
+
+##fit model, predict pheno on all markers
+fit = svm(ID1 ~ ., data = Optim_train, kernel = "radial", cost = 10, scale = FALSE)
 
 ##Use model to predict EBVs###
 
 genoF2 <- pullSnpGeno(F2)
-colnames(genoF2) <- paste("ID", 2:(ncol(genoF2)+1), sep="")
+colnames(genoF2) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsF2 = as.numeric(predict(fit,genoF2))
 
@@ -239,7 +239,7 @@ F3 = selectFam(F2, 50, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF3 <- pullSnpGeno(F3)
-colnames(genoF3) <- paste("ID", 2:(ncol(genoF3)+1) sep="")
+colnames(genoF3) <- paste("ID", 2:ncol(Optim_train), sep="")
 predictionsF3 = predict(fit,genoF3)
 
 
@@ -257,7 +257,7 @@ F4 = selectFam(F3, 30, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF4 <- pullSnpGeno(F4)
-colnames(genoF4) <- paste("ID", 2:(ncol(genoF4) +1), sep="")
+colnames(genoF4) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsF4 = predict(fit,genoF4)
 
@@ -276,7 +276,7 @@ F5 = selectFam(F4, 15, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF5 <- pullSnpGeno(F5)
-colnames(genoF5) <- paste("ID", 2:(ncol(genoF5) +1), sep="")
+colnames(genoF5) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsF5 = predict(fit,genoF5)
 
@@ -296,7 +296,7 @@ PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoPYT <- pullSnpGeno(PYT)
-colnames(genoPYT) <- paste("ID", 2:(ncol(genoPYT) +1), sep="")
+colnames(genoPYT) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsPYT = predict(fit,genoPYT)
 
@@ -315,7 +315,7 @@ AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoAYT <- pullSnpGeno(AYT)
-colnames(genoAYT) <- paste("ID", 2:(ncol(genoAYT) +1), sep="")
+colnames(genoAYT) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsAYT = predict(fit,genoAYT)
 
@@ -358,4 +358,3 @@ corMat[3,] <- cor3
 corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
-
