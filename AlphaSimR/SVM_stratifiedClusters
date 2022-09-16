@@ -7,9 +7,14 @@ library(AlphaSimR)
 library(readxl)
 library(writexl)
 library(rrBLUP)
-
-
 library(e1071)
+
+library(devtools)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(cluster)
+library(factoextra)
 
 ## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
 
@@ -105,11 +110,10 @@ founderPop = newMapPop(genMap,
 
 
 ##define simulation parameters##
-
 SP <- SimParam$new(founderPop)
-SP$addTraitADE(6, mean=1350)
+SP$addTraitADE(10, mean=1350)
 SP$setVarE(h2=0.25)
-SP$addSnpChip(55)
+SP$addSnpChip(57)
 
 ## generate parents and cross to form F1 ##
 
@@ -118,18 +122,16 @@ F1 = randCross(Parents, 100)
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 6) 
+F2 = self(F1, nProgeny = 5 )
 
           ##Build GS model using F2 as TRN to get EBVs##
 
           set.seed(23489)
-          
-          y = pheno(F2)
-          M = pullSnpGeno(F2)
-          M = M-1
-          
-          popF2 = as.data.frame(cbind(y,M))
-          colnames(popF2) <- paste("ID",1:606, sep="")
+          y <- pheno(F2)
+          M <- as.data.frame(pullSnpGeno(F2))
+          popF2 = as.data.frame(cbind(y,x))
+          colnames(popF2) <- paste("ID",1:628, sep="")
+
   
          newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
   
@@ -142,7 +144,7 @@ F2 = self(F1, nProgeny = 6)
         silhouette <- fviz_nbclust(PCAselected, kmeans, method = 'silhouette')
         silhouette$data ##largest value tells how many clusters are optimal ##
 
-        k=9
+        k=7
         kmeans_geno = kmeans(PCAselected, centers = k, nstart = 50)
         clusters <- fviz_cluster(kmeans_geno, data = PCAselected)
 
@@ -151,14 +153,14 @@ F2 = self(F1, nProgeny = 6)
         clusterData <- clusterData[order(clusterData$cluster),]
 
         cluster1 <- clusterData[clusterData$cluster==1,]
-        cluster2 <- clusterDate[clusterDate$cluster==2,]
-        cluster3 <- clusterDate[clusterDate$cluster==3,]
-        cluster4 <- clusterDate[clusterDate$cluster==4,]
-        cluster5 <- clusterDate[clusterDate$cluster==5,]
-        cluster6 <- clusterDate[clusterDate$cluster==6,]
-        cluster7 <- clusterDate[clusterDate$cluster==7,]
-        cluster8 <- clusterDate[clusterDate$cluster==8,]
-        cluster9 <- clusterDate[clusterDate$cluster==9,]
+        cluster2 <- clusterData[clusterData$cluster==2,]
+        cluster3 <- clusterData[clusterData$cluster==3,]
+        cluster4 <- clusterData[clusterData$cluster==4,]
+        cluster5 <- clusterData[clusterData$cluster==5,]
+        cluster6 <- clusterData[clusterData$cluster==6,]
+        cluster7 <- clusterData[clusterData$cluster==7,]
+        cluster8 <- clusterData[clusterData$cluster==8,]
+        cluster9 <- clusterData[clusterData$cluster==9,]
 
         trn1 <- cluster1[sample(0.3*nrow(cluster1)),]
         trn2 <- cluster2[sample(0.3*nrow(cluster2)),]
@@ -171,20 +173,22 @@ F2 = self(F1, nProgeny = 6)
         trn9 <- cluster9[sample(0.3*nrow(cluster9)),]
         TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
 
-        write.csv(TRN, "TRNpca.csv")
-        TRN <- (read.csv("TRNpca.csv"))
+      
         TRN <- TRN[,1]
    
+        M <- as.data.frame(M)   
+        rownames(M) <- c(601:1100)
         OptimGeno <- M[TRN,]
+        y <- as.data.frame(y)
         OptimPheno <- y[TRN,]
 
-         SR_train <- cbind(OptimPheno, OptimGeno)
+         Optim_train <- cbind(OptimPheno, OptimGeno, rmna=TRUE)
          dim(SR_train)
-         colnames(popF2) <- paste("ID",1:nrow(SR_train), sep="")
+         colnames(Optim_train) <- paste("ID",1:ncol(Optim_train), sep="")
          
                             
           ##fit model, predict pheno on all markers
-          fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
+          fit = svm(ID1 ~ ., data = Optim_train, kernel = "radial", cost = 10, scale = FALSE)
 
 ##Use model to predict EBVs###
 
