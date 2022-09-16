@@ -120,20 +120,20 @@ F1 = randCross(Parents, 100)
 
 F2 = self(F1, nProgeny = 5 )
 
-          ##Build GS model using F2 as TRN to get EBVs##
+##Build GS model using F2 as TRN to get EBVs##
 
-          set.seed(23489)
-          y <- pheno(F2)
-          x <- pullSnpGeno(F2)
-          popF2 = as.data.frame(cbind(y,x))
-          colnames(popF2) <- paste("ID",1:628, sep="")
+set.seed(123)
+y <- pheno(F2)
+x <- pullSnpGeno(F2)
+popF2 = as.data.frame(cbind(y,x))
+colnames(popF2) <- paste("ID",1:628, sep="")
 
-          train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
-          SR_train <- popF2[train_index, ]
-          SR_test <- popF2[-train_index, ]
-                            
-          ##fit model, predict pheno on all markers
-          fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
+train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
+SR_train <- popF2[train_index, ]
+SR_test <- popF2[-train_index, ]
+
+##fit model, predict pheno on all markers
+fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
 
 ##Use model to predict EBVs###
 
@@ -241,7 +241,7 @@ cor6 = cor(predictionsAYT, gv(AYT))
 
 #set ebvs#
 
-AYT@ebv= as.matrix(EBV)
+AYT@ebv= as.matrix(predictionsAYT)
 
 ## select top plants to form variety ##
 Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
