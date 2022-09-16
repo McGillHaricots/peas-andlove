@@ -107,9 +107,9 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitADE(6, mean=1350)
+SP$addTraitADE(10, mean=1350)
 SP$setVarE(h2=0.25)
-SP$addSnpChip(55)
+SP$addSnpChip(57)
 
 ## generate parents and cross to form F1 ##
 
@@ -118,9 +118,9 @@ F1 = randCross(Parents, 100)
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 6) 
+F2 = self(F1, nProgeny = 5) 
 
-          y = pheno(F2)
+    y = pheno(F2)
     M = pullSnpGeno(F2)
     M = M-1
   
@@ -136,7 +136,9 @@ F2 = self(F1, nProgeny = 6)
   
   Nind=nrow(matA1) # total number of individuals
   nindrep=400 # Choose a size for your calibration set
-  lambda = 0.5 ##VarE/VarG
+  VarG <- genicVarG(F2)
+  VarE <- 0.25
+  lambda = VarE/VarG
   
   # This function creates the matrix of contrast between each of the individual not in the calibration set and the mean of the population
 contrasteNonPheno=function(NotSampled_f,Nind_f,Nind_in_Sample_f)
@@ -203,21 +205,23 @@ CDmeanMax1[cpt2-1]=CDmeanSave
 SampleOptimiz=Sample1 # SampleOptimiz is the optimized calibration set
 
 M <- pullSnpGeno(F2)
+M <- as.data.frame(M)
 genoTrain <- M[SampleOptimiz,]
 
 y <- pheno(F2)
+y <- as.data.frame(y)
 phenoTrain <- as.matrix(y[SampleOptimiz,])
 
-SR_train <- cbind(phenoTrain, genoTrain)
-colnames(SR_train) <- paste("ID", 1:606, sep=")
+Optim_train <- cbind(phenoTrain, genoTrain)
+colnames(Optim_train) <- paste("ID", 1:ncol(Optim_train), sep="")
                             
   ##fit model, predict pheno on all markers
-         fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
+         fit = svm(ID1 ~ ., data = Optim_train, kernel = "radial", cost = 10, scale = FALSE)
 
 ##Use model to predict EBVs###
 
 genoF2 <- pullSnpGeno(F2)
-colnames(genoF2) <- paste("ID", 2:606, sep="")
+colnames(genoF2) <- paste("ID", 2:(ncol(genoF2)+1), sep="")
 
 predictionsF2 = as.numeric(predict(fit,genoF2))
 
@@ -235,7 +239,7 @@ F3 = selectFam(F2, 50, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF3 <- pullSnpGeno(F3)
-colnames(genoF3) <- paste("ID", 2:606, sep="")
+colnames(genoF3) <- paste("ID", 2:(ncol(genoF3)+1) sep="")
 predictionsF3 = predict(fit,genoF3)
 
 
@@ -253,7 +257,7 @@ F4 = selectFam(F3, 30, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF4 <- pullSnpGeno(F4)
-colnames(genoF4) <- paste("ID", 2:606, sep="")
+colnames(genoF4) <- paste("ID", 2:(ncol(genoF4) +1), sep="")
 
 predictionsF4 = predict(fit,genoF4)
 
@@ -272,7 +276,7 @@ F5 = selectFam(F4, 15, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF5 <- pullSnpGeno(F5)
-colnames(genoF5) <- paste("ID", 2:606, sep="")
+colnames(genoF5) <- paste("ID", 2:(ncol(genoF5) +1), sep="")
 
 predictionsF5 = predict(fit,genoF5)
 
@@ -292,7 +296,7 @@ PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoPYT <- pullSnpGeno(PYT)
-colnames(genoPYT) <- paste("ID", 2:606, sep="")
+colnames(genoPYT) <- paste("ID", 2:(ncol(genoPYT) +1), sep="")
 
 predictionsPYT = predict(fit,genoPYT)
 
@@ -311,7 +315,7 @@ AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoAYT <- pullSnpGeno(AYT)
-colnames(genoAYT) <- paste("ID", 2:606, sep="")
+colnames(genoAYT) <- paste("ID", 2:(ncol(genoAYT) +1), sep="")
 
 predictionsAYT = predict(fit,genoAYT)
 
@@ -320,7 +324,7 @@ cor6 = cor(predictionsAYT, gv(AYT))
 
 #set ebvs#
 
-AYT@ebv= as.matrix(EBV)
+AYT@ebv= as.matrix(predictionsAYT)
 
 ## select top plants to form variety ##
 Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
