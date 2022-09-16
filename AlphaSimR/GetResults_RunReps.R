@@ -30,7 +30,7 @@ corResults <- matrix(nrow=nModels, ncol=nReps)
 
 i = 1 
 repeat{
-  source("rrBLUP_stratClusters_SRNM_Flowering.R") ##Source the script for the scenario you would like to run##
+  source("SVM_Random.R") ##Source the script for the scenario you would like to run##
   F1results[,i] <- F1gv ##fills i column with F1gv results etc
   F2results[,i] <- F2gv
   F3results[,i] <- F3gv
@@ -75,8 +75,8 @@ repeat{
   
   
   ##write files
-  write.csv(allResults, "BLUP_stratClusters_Allgvs_SRNM_Flowering.csv")
-  write.csv(corResults, "BLUP_stratClusters_Correlation_SRNM_Flowering.csv")
+  write.csv(allResults, "SVM_random_Allgvs_SRN_Yield.csv")
+  write.csv(corResults, "SVM_random_Correlation_SRN_Yield.csv")
   
            
   
