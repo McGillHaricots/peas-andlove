@@ -111,9 +111,9 @@ founderPop = newMapPop(genMap,
 
 ##define simulation parameters##
 SP <- SimParam$new(founderPop)
-SP$addTraitADE(10, mean=1350)
-SP$setVarE(h2=0.25)
-SP$addSnpChip(57)
+SP$addTraitA(5,mean=35)
+SP$setVarE(h2=0.7)
+SP$addSnpChip(40)
 
 ## generate parents and cross to form F1 ##
 
@@ -130,7 +130,7 @@ set.seed(23489)
 y <- pheno(F2)
 M <- as.data.frame(pullSnpGeno(F2))
 popF2 = as.data.frame(cbind(y,x))
-colnames(popF2) <- paste("ID",1:628, sep="")
+colnames(popF2) <- paste("ID",1:ncol(popF2), sep="")
 
 
 newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
