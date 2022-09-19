@@ -13,7 +13,7 @@ library(e1071)
 
 ## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
 
-genotypes <- as.data.frame(read_xlsx("SRNM_geno.xlsx"))
+genotypes <- as.data.frame(read_xlsx("SR_geno.xlsx"))
 genotypes <- genotypes[1:1000,]
 
 
@@ -107,9 +107,9 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitADE(10, mean=1350)
-SP$setVarE(h2=0.25)
-SP$addSnpChip(57)
+SP$addTraitA(5,mean=35)
+SP$setVarE(h2=0.7)
+SP$addSnpChip(40)
 
 ## generate parents and cross to form F1 ##
 
@@ -126,7 +126,7 @@ set.seed(123)
 y <- pheno(F2)
 x <- pullSnpGeno(F2)
 popF2 = as.data.frame(cbind(y,x))
-colnames(popF2) <- paste("ID",1:628, sep="")
+colnames(popF2) <- paste("ID",1:(ncol(y) + ncol(x)), sep="")
 
 train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
 SR_train <- popF2[train_index, ]
@@ -138,7 +138,7 @@ fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
 ##Use model to predict EBVs###
 
 genoF2 <- pullSnpGeno(F2)
-colnames(genoF2) <- paste("ID", 2:628, sep="")
+colnames(genoF2) <- paste("ID", 2:(ncol(genoF2) +1), sep="")
 
 predictionsF2 = as.numeric(predict(fit,genoF2))
 
@@ -156,7 +156,7 @@ F3 = selectFam(F2, 50, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF3 <- pullSnpGeno(F3)
-colnames(genoF3) <- paste("ID", 2:628, sep="")
+colnames(genoF3) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
 predictionsF3 = predict(fit,genoF3)
 
 
@@ -174,7 +174,7 @@ F4 = selectFam(F3, 30, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF4 <- pullSnpGeno(F4)
-colnames(genoF4) <- paste("ID", 2:628, sep="")
+colnames(genoF4) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
 
 predictionsF4 = predict(fit,genoF4)
 
@@ -193,7 +193,7 @@ F5 = selectFam(F4, 15, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoF5 <- pullSnpGeno(F5)
-colnames(genoF5) <- paste("ID", 2:628, sep="")
+colnames(genoF5) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
 
 predictionsF5 = predict(fit,genoF5)
 
@@ -213,7 +213,7 @@ PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoPYT <- pullSnpGeno(PYT)
-colnames(genoPYT) <- paste("ID", 2:628, sep="")
+colnames(genoPYT) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
 
 predictionsPYT = predict(fit,genoPYT)
 
@@ -232,7 +232,7 @@ AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 ##RUN THE SVM MODEL##
 
 genoAYT <- pullSnpGeno(AYT)
-colnames(genoAYT) <- paste("ID", 2:628, sep="")
+colnames(genoAYT) <- paste("ID", 2:2:(ncol(genoF3) +1), sep="")
 
 predictionsAYT = predict(fit,genoAYT)
 
@@ -276,4 +276,3 @@ corMat[3,] <- cor3
 corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
-
