@@ -141,12 +141,11 @@ F2 = self(F1, nProgeny = 6)
   PCAselected = as.data.frame(-PCAgeno$x[,1:3])
   
   silhouette <- fviz_nbclust(PCAselected, kmeans, method = 'silhouette')
-  kvalues <- silhouette$data 
+  kvalues <- silhouette$data ##largest value tells how many clusters are optimal ##
+  kvalues <- kvalues[order(-kvalues$y),]
 
-  colnames(kvalues) <- c("kvalues")
-  kvalues <- kvalues[order(kvalues),]
+  k=as.numeric(kvalues[1,1])
   
-  k= kvalues[1,1]
   kmeans_geno = kmeans(PCAselected, centers = k, nstart = 50)
   clusters <- fviz_cluster(kmeans_geno, data = PCAselected)
   
