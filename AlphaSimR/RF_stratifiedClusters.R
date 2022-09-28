@@ -14,6 +14,8 @@ library(ranger)
 library(tidyverse)
 library(e1071)
 library(randomForest)
+library(cluster)
+library(factoextra)
 
 ## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
 
@@ -126,94 +128,94 @@ F2 = self(F1, nProgeny = 6)
 
 ###### BUILD GS MODEL #####
 
-  ## pull phenotypes and genptypes ##
-  set.seed(23489)
-  y <- pheno(F2)
-  M <- pullSnpGeno(F2)
-  M <- M-1
+## pull phenotypes and genptypes ##
+set.seed(23489)
+y <- pheno(F2)
+M <- pullSnpGeno(F2)
+M <- as.data.frame(M-1)
 
-  newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
-  
-  colnames(newgeno) =NULL
-  
-  PCAgeno <- prcomp(newgeno, center=TRUE, scale=TRUE) ##take out categorical columns##
-  
-  PCAselected = as.data.frame(-PCAgeno$x[,1:3])
-  
-  silhouette <- fviz_nbclust(PCAselected, kmeans, method = 'silhouette')
-  kvalues <- silhouette$data ##largest value tells how many clusters are optimal ##
-  kvalues <- kvalues[order(-kvalues$y),]
+newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
 
-  k=as.numeric(kvalues[1,1])
-  
-  kmeans_geno = kmeans(PCAselected, centers = k, nstart = 50)
-  clusters <- fviz_cluster(kmeans_geno, data = PCAselected)
-  
-  clusterData <- clusters$data
+colnames(newgeno) =NULL
 
-  clusterData <- clusterData[order(clusterData$cluster),]
+PCAgeno <- prcomp(newgeno, center=TRUE, scale=TRUE) ##take out categorical columns##
 
-  cluster1 <- clusterData[clusterData$cluster==1,]
-  cluster2 <- clusterDate[clusterDate$cluster==2,]
-  cluster3 <- clusterDate[clusterDate$cluster==3,]
-  cluster4 <- clusterDate[clusterDate$cluster==4,]
-  cluster5 <- clusterDate[clusterDate$cluster==5,]
-  cluster6 <- clusterDate[clusterDate$cluster==6,]
-  cluster7 <- clusterDate[clusterDate$cluster==7,]
-  cluster8 <- clusterDate[clusterDate$cluster==8,]
-  cluster9 <- clusterDate[clusterDate$cluster==9,]
+PCAselected = as.data.frame(-PCAgeno$x[,1:3])
 
-  trn1 <- cluster1[sample(0.3*nrow(cluster1)),]
-  trn2 <- cluster2[sample(0.3*nrow(cluster2)),]
-  trn3 <- cluster3[sample(0.3*nrow(cluster3)),]
-  trn4 <- cluster4[sample(0.3*nrow(cluster4)),]
-  trn5 <- cluster5[sample(0.3*nrow(cluster5)),]
-  trn6 <- cluster6[sample(0.3*nrow(cluster6)),]
-  trn7 <- cluster7[sample(0.3*nrow(cluster7)),]
-  trn8 <- cluster8[sample(0.3*nrow(cluster8)),]
-  trn9 <- cluster9[sample(0.3*nrow(cluster9)),]
-  TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
+silhouette <- fviz_nbclust(PCAselected, kmeans, method = 'silhouette')
+kvalues <- silhouette$data ##largest value tells how many clusters are optimal ##
+kvalues <- kvalues[order(-kvalues$y),]
 
-   write.csv(TRN, "TRNpca.csv")
-   TRN <- (read.csv("TRNpca.csv"))
-   TRN <- TRN[,1]
-   
-   OptimGeno <- M[TRN,]
-   OptimPheno <- y[TRN,]
-  
-  
-  SR_train <- cbind(OptimPheno, OptimGeno)
-  colnames(popF2) <- paste("ID",1:ncol(SR_Train), sep="") ##1-605 because the SNP chip has 605 SNPs + phenotypes may have to change if you have a different num. SNPS###
-  ##note ID1 will be the phenotype, IDs 2-606 are genotypes##
+k=as.numeric(kvalues[1,1])
+
+kmeans_geno = kmeans(PCAselected, centers = k, nstart = 50)
+clusters <- fviz_cluster(kmeans_geno, data = PCAselected)
+
+clusterData <- clusters$data
+
+clusterData <- clusterData[order(clusterData$cluster),]
+
+cluster1 <- clusterData[clusterData$cluster==1,]
+cluster2 <- clusterData[clusterData$cluster==2,]
+cluster3 <- clusterData[clusterData$cluster==3,]
+cluster4 <- clusterData[clusterData$cluster==4,]
+cluster5 <- clusterData[clusterData$cluster==5,]
+cluster6 <- clusterData[clusterData$cluster==6,]
+cluster7 <- clusterData[clusterData$cluster==7,]
+cluster8 <- clusterData[clusterData$cluster==8,]
+cluster9 <- clusterData[clusterData$cluster==9,]
+
+trn1 <- cluster1[sample(0.3*nrow(cluster1)),]
+trn2 <- cluster2[sample(0.3*nrow(cluster2)),]
+trn3 <- cluster3[sample(0.3*nrow(cluster3)),]
+trn4 <- cluster4[sample(0.3*nrow(cluster4)),]
+trn5 <- cluster5[sample(0.3*nrow(cluster5)),]
+trn6 <- cluster6[sample(0.3*nrow(cluster6)),]
+trn7 <- cluster7[sample(0.3*nrow(cluster7)),]
+trn8 <- cluster8[sample(0.3*nrow(cluster8)),]
+trn9 <- cluster9[sample(0.3*nrow(cluster9)),]
+TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
+TRN <- TRN[,1]
+
+M <- pullSnpGeno(F2)
+OptimGeno <- M[TRN,]
+
+y <- as.data.frame(pheno(F2))
+OptimPheno <- as.data.frame(y[TRN,])
 
 
-  ## create cross validation strategy ##
-  control <- trainControl(method='repeatedcv', 
-                                  number=10, ##will test 10 different values for mtry (number of variables for splitting) ##
-                                  repeats=3,
-                                  search = "random")        
-                              
-  ##build model##
-  
-  rf_fit = train(ID1 ~ ., 
-              data = SR_train, 
-              method = "rf",
-              tuneLength= 10,
-              trControl=control) ## search a random tuning grid ##
-              
-  ### This command takes about 90 minutes in an compute canada interactive session ###
-              
- ## look at the parameters of the model ##
- print(rf) 
-  
+Training <- cbind(OptimPheno, OptimGeno)
+colnames(Training) <- paste("ID",1:ncol(Training), sep="") ##1-605 because the SNP chip has 605 SNPs + phenotypes may have to change if you have a different num. SNPS###
+##note ID1 will be the phenotype, IDs 2-606 are genotypes##
+
+
+## create cross validation strategy ##
+control <- trainControl(method='repeatedcv', 
+                        number=10, ##will test 10 different values for mtry (number of variables for splitting) ##
+                        repeats=3,
+                        search = "random")        
+
+##build model##
+
+rf_fit = train(ID1 ~ ., 
+               data = Training, 
+               method = "rf",
+               tuneLength= 10,
+               trControl=control) ## search a random tuning grid ##
+
+### This command takes about 90 minutes in an compute canada interactive session ###
+
+## look at the parameters of the model ##
+print(rf) 
+
 #make predictions##
-  
+
 predictionsF2 <- as.numeric(predict(rf_fit, popF2))
-  
+
 cor1 = cor(predictionsF2, gv(F2))
-  
+
 #set ebvs#
-  
+
 F2@ebv= as.matrix(predictions)
 
 ## select top individuals to form F3 ##
@@ -355,6 +357,35 @@ PYTgv <- gv(PYT)
 AYTgv <- gv(AYT)
 Varietygv <- gv(Variety)
 
+F1gv <- as.data.frame(F1gv)
+F1gv$generation <- rep("F1", times=nrow(F1gv))
+
+F2gv <- as.data.frame(F2gv)
+F2gv$generation <- rep("F2", times=nrow(F2gv))
+
+F3gv <- as.data.frame(F3gv)
+F3gv$generation <- rep("F3", times=nrow(F3gv))
+
+
+F4gv <- as.data.frame(F4gv)
+F4gv$generation <- rep("F4", times=nrow(F4gv))
+
+F5gv <- as.data.frame(F5gv)
+F5gv$generation <- rep("F5", times=nrow(F5gv))
+
+PYTgv <- as.data.frame(PYTgv)
+PYTgv$generation <- rep("PYT", times=nrow(PYTgv))
+
+AYTgv <- as.data.frame(AYTgv)
+AYTgv$generation <- rep("AYT", times=nrow(AYTgv))
+
+Varietygv <- as.data.frame(Varietygv)
+Varietygv$generation <- rep("Variety", times=nrow(Varietygv))
+
+allResults <- rbind(F1gv, F2gv, F3gv,F4gv,F5gv,PYTgv,AYTgv,Varietygv)
+write.csv(allResults, "RF_Random_Allgvs_SR_Yield.csv")
+
+
 ###list correlations to view model performacne ##
 corMat <- matrix(nrow=6, ncol=1)
 corMat[1,] <- cor1
@@ -363,3 +394,5 @@ corMat[3,] <- cor3
 corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
+corMat <- as.data.frame(corMat)
+write.csv(corMat, "RF_Random_Correlation_SR_Yield.csv")
