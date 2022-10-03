@@ -328,38 +328,37 @@ AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 
 ##RUN THE SVM MODEL##
 
-                  set.seed(123)
-                  y <- pheno(AYT)
 
-                    y <- as.data.frame(y)
-                    IDS <- as.data.frame(1:nrow(y))
-                    pheno <- cbind(IDS,y)
-                    colnames(pheno) <- c("IDS", "DF")
-                    pheno <- pheno[order(pheno$DF),]
+              set.seed(123)
+              y <- pheno(AYT)
 
-                    ##split into 10 equal categories##
+                y <- as.data.frame(y)
+                IDS <- as.data.frame(1:nrow(y))
+                pheno <- cbind(IDS,y)
+                colnames(pheno) <- c("IDS", "DF")
+                pheno <- pheno[order(pheno$DF),]
 
-                    pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[4,2], "1",
-                                                         ifelse(pheno$DF < pheno[8,2],"2",
-                                                                ifelse(pheno$DF < pheno[12,2],"3",
-                                                                       ifelse(pheno$DF < pheno[16,2],"4",
-                                                                              ifelse(pheno$DF < pheno[20,2],"5", "6"))))))
-                    pheno <-pheno[order(as.numeric(pheno$IDS)),]
-                    categoriesAYT <- as.data.frame(pheno[,3])
+                ##split into 10 equal categories##
 
-                  genoAYT <- pullSnpGeno(AYT)
-                  colnames(genoAYT) <- paste("ID", 2:(ncol(genoAYT) +1), sep="")
+                 pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[4,2], "1",
+                                                     ifelse(pheno$DF < pheno[8,2],"2",
+                                                            ifelse(pheno$DF < pheno[12,2],"3",
+                                                                   ifelse(pheno$DF < pheno[16,2],"4",
+                                                                          ifelse(pheno$DF < pheno[20,2],"5", "6"))))))
+                pheno <-pheno[order(as.numeric(pheno$IDS)),]
+                categoriesAYT <- as.data.frame(pheno[,3])
 
-                  predictionsAYT = as.numeric(predict(fit,genoAYT))
+              genoAYT <- pullSnpGeno(AYT)
+              colnames(genoAYT) <- paste("ID", 2:(ncol(genoF5) +1), sep="")
 
-                  categoriesAYT <- as.numeric(categoriesAYT[,1])
-                  cor6 = cor(predictionsAYT, categoriesAYT)
+              predictionsAYT = as.numeric(predict(fit,genoAYT))
 
-                  #set ebvs#
+              categoriesAYT <- as.numeric(categoriesAYT[,1])
+              cor6 = cor(predictionsAYT, categoriesAYT)
 
-                  AYT@ebv= as.matrix(predictionsAYT)
+              #set ebvs#
 
-                  ## select top families from F4 to form F5 ##
+              AYT@ebv= as.matrix(predictionsAYT)
 
 ## select top plants to form variety ##
 Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
