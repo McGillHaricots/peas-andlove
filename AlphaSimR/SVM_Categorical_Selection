@@ -107,9 +107,9 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitA(5,mean=35)
-SP$setVarE(h2=0.7)
-SP$addSnpChip(40)
+SP$addTraitADE(10, mean=3150)
+SP$setVarE(h2=0.25)
+SP$addSnpChip(57)
 
 ## generate parents and cross to form F1 ##
 
@@ -122,48 +122,49 @@ F2 = self(F1, nProgeny = 5 )
 
 ##Build GS model using F2 as TRN to get EBVs##
 
-set.seed(123)
-y <- pheno(F2)
+                  set.seed(123)
+                  y <- pheno(F2)
 
-  y <- as.data.frame(y)
-  IDS <- as.data.frame(1:nrow(y))
-  pheno <- cbind(IDS,y)
-  colnames(pheno) <- c("IDS", "DF")
-  pheno <- pheno[order(pheno$DF),]
-  
-  ##split into 10 equal categories##
-  
-  pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[100,2], "1",
-                                       ifelse(pheno$DF < pheno[200,2],"2",
-                                              ifelse(pheno$DF < pheno[300,2],"3",
-                                                     ifelse(pheno$DF < pheno[400,2],"4",
-                                                            ifelse(pheno$DF < pheno[500,2],"5", "6"))))))
-  pheno <-pheno[order(as.numeric(pheno$IDS)),]
-  categories <- as.data.frame(pheno[,3])
-  
-x <- pullSnpGeno(F2)
-popF2 = as.data.frame(cbind(y,x))
-colnames(popF2) <- paste("ID",1:(ncol(y) + ncol(x)), sep="")
+                    y <- as.data.frame(y)
+                    IDS <- as.data.frame(1:nrow(y))
+                    pheno <- cbind(IDS,y)
+                    colnames(pheno) <- c("IDS", "DF")
+                    pheno <- pheno[order(pheno$DF),]
 
-train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
-SR_train <- popF2[train_index, ]
-SR_test <- popF2[-train_index, ]
+                    ##split into 10 equal categories##
 
-##fit model, predict pheno on all markers
-fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
+                    pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[100,2], "1",
+                                                         ifelse(pheno$DF < pheno[200,2],"2",
+                                                                ifelse(pheno$DF < pheno[300,2],"3",
+                                                                       ifelse(pheno$DF < pheno[400,2],"4",
+                                                                              ifelse(pheno$DF < pheno[500,2],"5", "6"))))))
+                    pheno <-pheno[order(as.numeric(pheno$IDS)),]
+                    categories <- as.data.frame(pheno[,3])
 
-##Use model to predict EBVs###
+                  x <- pullSnpGeno(F2)
+                  popF2 = as.data.frame(cbind(categories,x))
+                  colnames(popF2) <- paste("ID",1:(ncol(y) + ncol(x)), sep="")
 
-genoF2 <- pullSnpGeno(F2)
-colnames(genoF2) <- paste("ID", 2:(ncol(genoF2) +1), sep="")
+                  train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
+                  SR_train <- popF2[train_index, ]
+                  SR_test <- popF2[-train_index, ]
 
-predictionsF2 = as.numeric(predict(fit,genoF2))
+                  ##fit model, predict pheno on all markers
+                  fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
 
-cor1 = cor(predictionsF2, gv(F2))
+                  ##Use model to predict EBVs###
 
-#set ebvs#
+                  genoF2 <- pullSnpGeno(F2)
+                  colnames(genoF2) <- paste("ID", 2:(ncol(genoF2) +1), sep="")
 
-F2@ebv= as.matrix(predictionsF2)
+                  predictionsF2 = as.numeric(predict(fit,genoF2))
+
+                  categories <- as.numeric(categories[,1])
+                  cor1 = cor(predictionsF2, categories)
+
+                  #set ebvs#
+
+                  F2@ebv= as.matrix(predictionsF2)
 
 ## select top individuals to form F3 ##
 
@@ -172,73 +173,152 @@ F3 = selectFam(F2, 50, use="ebv", top=TRUE)
 
 ##RUN THE SVM MODEL##
 
-genoF3 <- pullSnpGeno(F3)
-colnames(genoF3) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
-predictionsF3 = predict(fit,genoF3)
+                  set.seed(123)
+                  y <- pheno(F3)
 
+                    y <- as.data.frame(y)
+                    IDS <- as.data.frame(1:nrow(y))
+                    pheno <- cbind(IDS,y)
+                    colnames(pheno) <- c("IDS", "DF")
+                    pheno <- pheno[order(pheno$DF),]
 
-cor2 = cor(predictionsF3, gv(F3))
+                    ##split into 10 equal categories##
 
-#set ebvs#
+                    pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[50,2], "1",
+                                                         ifelse(pheno$DF < pheno[100,2],"2",
+                                                                ifelse(pheno$DF < pheno[150,2],"3",
+                                                                       ifelse(pheno$DF < pheno[200,2],"4",
+                                                                              ifelse(pheno$DF < pheno[250,2],"5", "6"))))))
+                    pheno <-pheno[order(as.numeric(pheno$IDS)),]
+                    categoriesF3 <- as.data.frame(pheno[,3])
 
-F3@ebv= as.matrix(predictionsF3)
+                  x <- pullSnpGeno(F3)
+                  popF3 = as.data.frame(cbind(categoriesF3,x))
+                  colnames(popF3) <- paste("ID",1:(ncol(y) + ncol(x)), sep="")
 
-##select top families from F3 to form F4 ##
+                  genoF3 <- pullSnpGeno(F3)
+                  colnames(genoF3) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
+
+                  predictionsF3 = as.numeric(predict(fit,genoF3))
+
+                  categoriesF3 <- as.numeric(categoriesF3[,1])
+                  cor2 = cor(predictionsF3, categoriesF3)
+
+                  #set ebvs#
+
+                  F3@ebv= as.matrix(predictionsF3)
+
+                  ##select top families from F3 to form F4 ##
 
 F4 = selectFam(F3, 30, use="ebv", top=TRUE) 
 
 
-##RUN THE SVM MODEL##
+                  ##RUN THE SVM MODEL##
 
-genoF4 <- pullSnpGeno(F4)
-colnames(genoF4) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
+                  set.seed(123)
+                  y <- pheno(F4)
 
-predictionsF4 = predict(fit,genoF4)
+                    y <- as.data.frame(y)
+                    IDS <- as.data.frame(1:nrow(y))
+                    pheno <- cbind(IDS,y)
+                    colnames(pheno) <- c("IDS", "DF")
+                    pheno <- pheno[order(pheno$DF),]
 
-cor3 = cor(predictionsF4, gv(F4))
+                    ##split into 10 equal categories##
 
-#set ebvs#
+                    pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[30,2], "1",
+                                                         ifelse(pheno$DF < pheno[60,2],"2",
+                                                                ifelse(pheno$DF < pheno[90,2],"3",
+                                                                       ifelse(pheno$DF < pheno[120,2],"4",
+                                                                              ifelse(pheno$DF < pheno[150,2],"5", "6"))))))
+                    pheno <-pheno[order(as.numeric(pheno$IDS)),]
+                    categoriesF4 <- as.data.frame(pheno[,3])
 
-F4@ebv= as.matrix(predictionsF4)
+                  genoF4 <- pullSnpGeno(F4)
+                  colnames(genoF4) <- paste("ID", 2:(ncol(genoF4) +1), sep="")
 
+                  predictionsF4 = as.numeric(predict(fit,genoF4))
 
-## select top families from F4 to form F5 ##
+                  categoriesF4 <- as.numeric(categoriesF4[,1])
+                  cor3 = cor(predictionsF4, categoriesF4)
+
+                  #set ebvs#
+
+                  F4@ebv= as.matrix(predictionsF4)
+
+                  ## select top families from F4 to form F5 ##
 
 F5 = selectFam(F4, 15, use="ebv", top=TRUE)
 
 
-##RUN THE SVM MODEL##
+              ##RUN THE SVM MODEL##
 
-genoF5 <- pullSnpGeno(F5)
-colnames(genoF5) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
+              set.seed(123)
+              y <- pheno(F5)
 
-predictionsF5 = predict(fit,genoF5)
+                y <- as.data.frame(y)
+                IDS <- as.data.frame(1:nrow(y))
+                pheno <- cbind(IDS,y)
+                colnames(pheno) <- c("IDS", "DF")
+                pheno <- pheno[order(pheno$DF),]
 
+                ##split into 10 equal categories##
 
-cor4 = cor(predictionsF5, gv(F5))
+              pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[15,2], "1",
+                                                     ifelse(pheno$DF < pheno[30,2],"2",
+                                                            ifelse(pheno$DF < pheno[45,2],"3",
+                                                                   ifelse(pheno$DF < pheno[60,2],"4",
+                                                                          ifelse(pheno$DF < pheno[75,2],"5", "6"))))))
+                pheno <-pheno[order(as.numeric(pheno$IDS)),]
+                categoriesF5 <- as.data.frame(pheno[,3])
 
-#set ebvs#
+              genoF5 <- pullSnpGeno(F5)
+              colnames(genoF5) <- paste("ID", 2:(ncol(genoF5) +1), sep="")
 
-F5@ebv= as.matrix(predictionsF5)
+              predictionsF5 = as.numeric(predict(fit,genoF5))
+
+              categoriesF5 <- as.numeric(categoriesF5[,1])
+              cor4 = cor(predictionsF5, categoriesF5)
+
+              #set ebvs#
+
+              F5@ebv= as.matrix(predictionsF5)
 
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)  
+PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE) 
 
 
-##RUN THE SVM MODEL##
+                set.seed(123)
+                y <- pheno(PYT)
 
-genoPYT <- pullSnpGeno(PYT)
-colnames(genoPYT) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
+                  y <- as.data.frame(y)
+                  IDS <- as.data.frame(1:nrow(y))
+                  pheno <- cbind(IDS,y)
+                  colnames(pheno) <- c("IDS", "DF")
+                  pheno <- pheno[order(pheno$DF),]
 
-predictionsPYT = predict(fit,genoPYT)
+                  ##split into 10 equal categories##
 
-cor5 = cor(predictionsPYT, gv(PYT))
+                  pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[20,2], "1",
+                                                       ifelse(pheno$DF < pheno[40,2],"2",
+                                                              ifelse(pheno$DF < pheno[60,2],"3","4"))))
+                  pheno <-pheno[order(as.numeric(pheno$IDS)),]
+                  categoriesPYT <- as.data.frame(pheno[,3])
 
-#set ebvs#
+                genoPYT <- pullSnpGeno(PYT)
+                colnames(genoPYT) <- paste("ID", 2:(ncol(genoF4) +1), sep="")
 
-PYT@ebv= as.matrix(predictionsPYT)
+                predictionsPYT = as.numeric(predict(fit,genoPYT))
+
+                categoriesPYT <- as.numeric(categoriesPYT[,1])
+                cor5 = cor(predictionsPYT, categoriesPYT)
+
+
+                #set ebvs#
+
+                PYT@ebv= as.matrix(predictionsPYT)
 
 
 ## select top plants from PYT to form advanced yield trial ##
@@ -248,17 +328,38 @@ AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 
 ##RUN THE SVM MODEL##
 
-genoAYT <- pullSnpGeno(AYT)
-colnames(genoAYT) <- paste("ID", 2:2:(ncol(genoF3) +1), sep="")
+                  set.seed(123)
+                  y <- pheno(AYT)
 
-predictionsAYT = predict(fit,genoAYT)
+                    y <- as.data.frame(y)
+                    IDS <- as.data.frame(1:nrow(y))
+                    pheno <- cbind(IDS,y)
+                    colnames(pheno) <- c("IDS", "DF")
+                    pheno <- pheno[order(pheno$DF),]
 
+                    ##split into 10 equal categories##
 
-cor6 = cor(predictionsAYT, gv(AYT))
+                    pheno$DFcategory <- as.factor(ifelse(pheno$DF < pheno[4,2], "1",
+                                                         ifelse(pheno$DF < pheno[8,2],"2",
+                                                                ifelse(pheno$DF < pheno[12,2],"3",
+                                                                       ifelse(pheno$DF < pheno[16,2],"4",
+                                                                              ifelse(pheno$DF < pheno[20,2],"5", "6"))))))
+                    pheno <-pheno[order(as.numeric(pheno$IDS)),]
+                    categoriesAYT <- as.data.frame(pheno[,3])
 
-#set ebvs#
+                  genoAYT <- pullSnpGeno(AYT)
+                  colnames(genoAYT) <- paste("ID", 2:(ncol(genoAYT) +1), sep="")
 
-AYT@ebv= as.matrix(predictionsAYT)
+                  predictionsAYT = as.numeric(predict(fit,genoAYT))
+
+                  categoriesAYT <- as.numeric(categoriesAYT[,1])
+                  cor6 = cor(predictionsAYT, categoriesAYT)
+
+                  #set ebvs#
+
+                  AYT@ebv= as.matrix(predictionsAYT)
+
+                  ## select top families from F4 to form F5 ##
 
 ## select top plants to form variety ##
 Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
