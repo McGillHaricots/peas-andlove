@@ -1,8 +1,3 @@
-### This script will carry out a GS breeding strategy on the population you provide in the genotype file. 
-### The GS model is Random Forest and the training set is determined by Stratified Clustering ###
-
-## load required packages ##
-
 library(AlphaSimR)
 library(readxl)
 library(writexl)
@@ -113,8 +108,8 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitADE(6, mean=1350)
-SP$setVarE(h2=0.25)
+SP$addTraitADE(10, mean=1350)
+SP$setVarE(h2= 0.3)
 SP$addSnpChip(55)
 
 ## generate parents and cross to form F1 ##
@@ -129,10 +124,9 @@ F2 = self(F1, nProgeny = 6)
 ###### BUILD GS MODEL #####
 
 ## pull phenotypes and genptypes ##
-set.seed(23489)
 y <- pheno(F2)
 M <- pullSnpGeno(F2)
-M <- as.data.frame(M-1)
+M <- as.data.frame(M)
 
 newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
 
@@ -164,17 +158,19 @@ cluster6 <- clusterData[clusterData$cluster==6,]
 cluster7 <- clusterData[clusterData$cluster==7,]
 cluster8 <- clusterData[clusterData$cluster==8,]
 cluster9 <- clusterData[clusterData$cluster==9,]
+cluster10 <- clusterData[clusterData$cluster==10,]
 
-trn1 <- cluster1[sample(0.3*nrow(cluster1)),]
-trn2 <- cluster2[sample(0.3*nrow(cluster2)),]
-trn3 <- cluster3[sample(0.3*nrow(cluster3)),]
-trn4 <- cluster4[sample(0.3*nrow(cluster4)),]
-trn5 <- cluster5[sample(0.3*nrow(cluster5)),]
-trn6 <- cluster6[sample(0.3*nrow(cluster6)),]
-trn7 <- cluster7[sample(0.3*nrow(cluster7)),]
-trn8 <- cluster8[sample(0.3*nrow(cluster8)),]
-trn9 <- cluster9[sample(0.3*nrow(cluster9)),]
-TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
+trn1 <- cluster1[sample(0.9*nrow(cluster1)),]
+trn2 <- cluster2[sample(0.9*nrow(cluster2)),]
+trn3 <- cluster3[sample(0.9*nrow(cluster3)),]
+trn4 <- cluster4[sample(0.9*nrow(cluster4)),]
+trn5 <- cluster5[sample(0.9*nrow(cluster5)),]
+trn6 <- cluster6[sample(0.9*nrow(cluster6)),]
+trn7 <- cluster7[sample(0.9*nrow(cluster7)),]
+trn8 <- cluster8[sample(0.9*nrow(cluster8)),]
+trn9 <- cluster9[sample(0.9*nrow(cluster9)),]
+trn10 <- cluster9[sample(0.9*nrow(cluster10)),]
+TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9, trn10)
 TRN <- TRN[,1]
 
 M <- pullSnpGeno(F2)
@@ -196,19 +192,29 @@ control <- trainControl(method='repeatedcv',
                         search = "random")        
 
 ##build model##
-
+na.omit(Training)
 rf_fit = train(ID1 ~ ., 
                data = Training, 
                method = "rf",
                tuneLength= 10,
                trControl=control) ## search a random tuning grid ##
 
+
 ### This command takes about 90 minutes in an compute canada interactive session ###
 
 ## look at the parameters of the model ##
 print(rf) 
 
+## look at the parameters of the model ##
+print(rf_fit) 
+
 #make predictions##
+
+set.seed(123)
+phenoF2 <- pheno(F2)
+genoF2 <- pullSnpGeno(F2)
+popF2 <- cbind(phenoF2, genoF2)
+colnames(popF2) <- paste("ID",1:ncol(popF2), sep="")
 
 predictionsF2 <- as.numeric(predict(rf_fit, popF2))
 
@@ -216,7 +222,7 @@ cor1 = cor(predictionsF2, gv(F2))
 
 #set ebvs#
 
-F2@ebv= as.matrix(predictions)
+F2@ebv= as.matrix(predictionsF2)
 
 ## select top individuals to form F3 ##
 
@@ -224,11 +230,11 @@ F3 = selectFam(F2, 50, use="ebv", top=TRUE)
 
 ##RUN THE RF MODEL##
 
-set.seed(23489)
+set.seed(123)
 phenoF3 <- pheno(F3)
 genoF3 <- pullSnpGeno(F3)
 popF3 <- cbind(phenoF3, genoF3)
-colnames(popF3) <- paste("ID",1:606, sep="")
+colnames(popF3) <- paste("ID",1:ncol(popF3), sep="")
 
 #make predictions##
 
@@ -246,11 +252,11 @@ F4 = selectFam(F3, 30, use="ebv", top=TRUE)
 
 ##RUN THE RF MODEL##
 
-set.seed(23489)
+set.seed(123)
 phenoF4 <- pheno(F4)
 genoF4 <- pullSnpGeno(F4)
 popF4 <- cbind(phenoF4, genoF4)
-colnames(popF4) <- paste("ID",1:606, sep="")
+colnames(popF4) <- paste("ID",1:ncol(popF4), sep="")
 
 #make predictions##
 
@@ -270,11 +276,11 @@ F5 = selectFam(F4, 15, use="ebv", top=TRUE)
 
 ##RUN THE RF MODEL##
 
-set.seed(23489)
+set.seed(123)
 phenoF5 <- pheno(F5)
 genoF5 <- pullSnpGeno(F5)
 popF5 <- cbind(phenoF5, genoF5)
-colnames(popF5) <- paste("ID",1:606, sep="")
+colnames(popF5) <- paste("ID",1:ncol(popF5), sep="")
 
 #make predictions##
 
@@ -294,11 +300,11 @@ PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)
 
 ##RUN THE RF MODEL##
 
-set.seed(23489)
+set.seed(123)
 phenoPYT <- pheno(PYT)
 genoPYT <- pullSnpGeno(PYT)
 popPYT <- cbind(phenoPYT, genoPYT)
-colnames(popPYT) <- paste("ID",1:606, sep="")
+colnames(popPYT) <- paste("ID",1:ncol(popPYT), sep="")
 
 #make predictions##
 
@@ -317,11 +323,11 @@ AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 
 ##RUN THE RF MODEL##
 
-set.seed(23489)
+set.seed(123)
 phenoAYT <- pheno(AYT)
 genoAYT <- pullSnpGeno(AYT)
 popAYT <- cbind(phenoAYT, genoAYT)
-colnames(popAYT) <- paste("ID",1:606, sep="")
+colnames(popAYT) <- paste("ID",1:ncol(popAYT), sep="")
 
 #make predictions##
 
@@ -383,7 +389,7 @@ Varietygv <- as.data.frame(Varietygv)
 Varietygv$generation <- rep("Variety", times=nrow(Varietygv))
 
 allResults <- rbind(F1gv, F2gv, F3gv,F4gv,F5gv,PYTgv,AYTgv,Varietygv)
-write.csv(allResults, "RF_Random_Allgvs_SR_Yield.csv")
+write.csv(allResults, "RF_stratifiedClustersLG_Allgvs_SR_Yield.csv")
 
 
 ###list correlations to view model performacne ##
@@ -395,4 +401,7 @@ corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
 corMat <- as.data.frame(corMat)
-write.csv(corMat, "RF_Random_Correlation_SR_Yield.csv")
+write.csv(corMat, "RF_stratifiedClustersLG_Correlation_SR_Yield.csv")
+
+
+
