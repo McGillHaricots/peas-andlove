@@ -1,0 +1,9 @@
+###To submit a job to clusters and run remotely###
+
+#!/bin/bash
+#SBATCH --time=3:00:00
+#SBATCH --mem-per-cpu=8G
+
+ module load r
+
+Rscript NameofScript.R
