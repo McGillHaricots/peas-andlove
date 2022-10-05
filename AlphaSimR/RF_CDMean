@@ -135,89 +135,30 @@ F2 = self(F1, nProgeny = 6)
     dim(M) ## tells how large samples should be ##
     dim(y)
   
-    ##OPTIMIZE TRN, Rincent et al 2012###
   
-    geno <- t(M) #must transpose)
-    matA1 <- as.matrix(geno) ## turn into matrix ##
-    matA1 <- cov(matA1) ## calculate covariance ##
-    invA1 <- solve(matA1) ##inverse matrix##
   
-    Nind=nrow(matA1) # total number of individuals
-    nindrep=400 # Choose a size for your calibration set
-    lambda = 0.5 ##VarE/VarG
-  
-        # This function creates the matrix of contrast between each of the individual not in the calibration set and the mean of the population
-      contrasteNonPheno=function(NotSampled_f,Nind_f,Nind_in_Sample_f)
-      {
-      mat=matrix(-1/Nind_f,Nind_f,Nind_f-Nind_in_Sample_f)
-      for (i in 1:ncol(mat)) {
-      mat[NotSampled_f[i],i]=1-1/Nind_f
-      }
-      return(mat)
-      }
+  SampleOptimiz <- read.csv("TRN_SRNM.csv") ##This file was created by running the Rincent et al 2012 optimization algorithm##
+  SampleOptimiz <- SampleOptimiz[,2]
 
-      Nind_in_Sample=nindrep
+M <- as.data.frame(pullSnpGeno(F2))
+genoTrain <- M[SampleOptimiz,]
 
-      #Design matrices
-      Ident<-diag(Nind_in_Sample)
-      X<-rep(1,Nind_in_Sample)
-      M<-Ident- (X%*%solve(t(X)%*%X) %*% t(X) )
+y <- pheno(F2)
+y <- as.data.frame(y)
+phenoTrain <- as.matrix(y[SampleOptimiz,])
 
-      Sample1<-sample(Nind,Nind_in_Sample) #Calibration set initialization
-      SaveSample=Sample1
-      NotSampled1<-seq(1:Nind)
-      NotSampled<-NotSampled1[-Sample1] # Initial validation set
-
-      Z=matrix(0,Nind_in_Sample,Nind)
-      for (i in 1:length(Sample1)) { Z[i,Sample1[i]]=1 } 
-
-      T<-contrasteNonPheno(NotSampled,Nind,Nind_in_Sample)   # T is the matrix of contrasts
-
-      # Calculate of CDmean of the initial set
-      matCD<-(t(T)%*%(matA1-lambda*solve(t(Z)%*%M%*%Z + lambda*invA1))%*%T)/(t(T)%*%matA1%*%T)
-      CD=diag(matCD)
-      CDmeanSave=mean(CD)
-
-      CDmeanMax1=rep(NA,800)
-
-      # Exchange algorithm (maximize CDmean)
-      cpt2=1
-      cpt=0
-      while (cpt2<800) {  # Make sure that 800 is enough in your case (that you reached a plateau), for this look at CDmeanMax1.
-       NotSampled=NotSampled1[-Sample1] 
-      cpt2=cpt2+1
-      # Remove one individual (randomly choosen) from the sample :
-      Sample2=sample(Sample1,1)
-      # Select one individual (randomly choosen) from the individuals that are not in the Calibration set :
-      Sample3=sample(NotSampled,1)
-      # New calibration set :
-      Sample4=c(Sample3,Sample1[Sample1!=Sample2])
-      # Calculate the mean CD of the new calibration set :
-      Z=matrix(0,Nind_in_Sample,Nind)
-      for (i in 1:length(Sample4)) { Z[i,Sample4[i]]=1 } 
-      NotSampled=NotSampled1[-Sample4] 
-      T<-contrasteNonPheno(NotSampled,Nind,Nind_in_Sample)
-      matCD<-(t(T)%*%(matA1-lambda*solve(t(Z)%*%M%*%Z + lambda*invA1))%*%T)/(t(T)%*%matA1%*%T)
-      CD=diag(matCD)
-      if (mean(CD)>CDmeanSave ) { Sample1=Sample4 # Accept the new Calibration set if CDmean is increased, reject otherwise.
-      CDmeanSave=mean(CD)  
-      cpt=0 } else { cpt=cpt+1 
-      }
-      CDmeanMax1[cpt2-1]=CDmeanSave
-      }  #Fin du while
-
-      SampleOptimiz=Sample1 # SampleOptimiz is the optimized calibration set
-
-      M <- pullSnpGeno(F2)
-      genoTrain <- M[SampleOptimiz,]
-
-      y <- pheno(F2)
-      phenoTrain <- as.matrix(y[SampleOptimiz,])   
+Optim_train <- cbind(phenoTrain, genoTrain)
+colnames(Optim_train) <- paste("ID", 1:ncol(Optim_train), sep="")
                               
   ##build model##
   
+  control <- trainControl(method='repeatedcv', 
+                        number=10, ##will test 10 different values for mtry (number of variables for splitting) ##
+                        repeats=3,
+                        search = "random")        
+
   rf_fit = train(ID1 ~ ., 
-              data = SR_train, 
+              data = Optim_train, 
               method = "rf",
               tuneLength= 10,
               trControl=control) ## search a random tuning grid ##
@@ -229,6 +170,11 @@ F2 = self(F1, nProgeny = 6)
   
 #make predictions##
   
+
+phenoF2 <- pheno(F2)
+genoF2 <- pullSnpGeno(F2)
+popF2 <- cbind(phenoF2, genoF2)
+colnames(popF2) <- paste("ID",1:ncol(popF2), sep="")  
 predictionsF2 <- as.numeric(predict(rf_fit, popF2))
   
 cor1 = cor(predictionsF2, gv(F2))
