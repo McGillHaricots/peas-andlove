@@ -173,7 +173,8 @@ F2@ebv= as.matrix(predictions)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3Sel = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3 = self(F3Sel)
 
 ##RUN THE RF MODEL##
 
@@ -195,7 +196,8 @@ F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 30, use="ebv", top=TRUE) 
+F4Sel = selectFam(F3, 30, use="ebv", top=TRUE) 
+F4 = self(F4Sel)
 
 ##RUN THE RF MODEL##
 
@@ -218,7 +220,8 @@ F4@ebv= as.matrix(predictionsF4)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 15, use="ebv", top=TRUE)
+F5Sel = selectFam(F4, 15, use="ebv", top=TRUE)
+F5 = self(F5Sel)
 
 
 ##RUN THE RF MODEL##
@@ -242,7 +245,9 @@ F5@ebv= as.matrix(predictionsF5)
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE) 
+PYTSel = selectWithinFam(F5, 4, use="ebv", top=TRUE)
+PYT = self(PYTsel)
+
 
 
 ##RUN THE RF MODEL##
@@ -265,7 +270,8 @@ PYT@ebv= as.matrix(predictionsPYT)
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+AYTSel = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+AYT = self(AYTsel)
 
 
 ##RUN THE RF MODEL##
