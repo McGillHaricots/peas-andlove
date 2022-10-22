@@ -153,7 +153,8 @@ cor1 = cor(gv(F2), ebv(F2))
 
 ## select top families to form F3 ##
 
-F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3Sel = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3 = self(F3Sel)
 
 ##set EBV using BLUP model##
 M_F3 <-pullSnpGeno(F3)
@@ -166,7 +167,9 @@ cor2 = cor(gv(F3),ebv(F3))
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 30, use="ebv") 
+F4Sel= selectFam(F3, 30, use="ebv") 
+F4 = self(F4Sel)
+
 
 ##set EBV using BLUP model##
 M_F4 <-pullSnpGeno(F4)
@@ -179,7 +182,8 @@ cor3= cor(gv(F4), ebv(F4))
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 15, use="ebv")
+F5Sel = selectFam(F4, 15, use="ebv")
+F5 = self(F5Sel)
 
 
 ##set EBV using BLUP model##
@@ -193,8 +197,8 @@ cor4 = cor(gv(F5),ebv(F5))
 
 ## select top individual from F5 to form preliminary yield trial ##
 
-PYT = selectWithinFam(F5, 4, use="ebv") 
-
+PYTSel = selectWithinFam(F5, 4, use="ebv") 
+PYT = self(PYTSel)
 
 ##set EBV using BLUP model##
 M_PYT <-pullSnpGeno(PYT)
@@ -206,8 +210,8 @@ cor5 = cor(gv(PYT),ebv(PYT))
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
-
+AYTSel = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+AYT = self(AYTSel)
 
 ##set EBV using BLUP model##
 M_AYT <-pullSnpGeno(AYT)
