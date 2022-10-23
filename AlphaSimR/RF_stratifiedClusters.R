@@ -210,12 +210,6 @@ print(rf_fit)
 
 #make predictions##
 
-set.seed(123)
-phenoF2 <- pheno(F2)
-genoF2 <- pullSnpGeno(F2)
-popF2 <- cbind(phenoF2, genoF2)
-colnames(popF2) <- paste("ID",1:ncol(popF2), sep="")
-
 predictionsF2 <- as.numeric(predict(rf_fit, popF2))
 
 cor1 = cor(predictionsF2, gv(F2))
@@ -226,7 +220,8 @@ F2@ebv= as.matrix(predictionsF2)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3Sel = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3 = self(F3Sel)
 
 ##RUN THE RF MODEL##
 
@@ -248,7 +243,8 @@ F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 30, use="ebv", top=TRUE) 
+F4Sel = selectFam(F3, 30, use="ebv", top=TRUE) 
+F4 = self(F4Sel)
 
 ##RUN THE RF MODEL##
 
@@ -271,8 +267,8 @@ F4@ebv= as.matrix(predictionsF4)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 15, use="ebv", top=TRUE)
-
+F5Sel = selectFam(F4, 15, use="ebv", top=TRUE)
+F5 = self(F5Sel)
 
 ##RUN THE RF MODEL##
 
@@ -295,8 +291,8 @@ F5@ebv= as.matrix(predictionsF5)
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE) 
-
+PYTSel = selectWithinFam(F5, 4, use="ebv", top=TRUE) 
+PYT = self(PYTSel)
 
 ##RUN THE RF MODEL##
 
@@ -318,7 +314,8 @@ PYT@ebv= as.matrix(predictionsPYT)
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+AYTSel = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+AYT = self(AYTSel)
 
 
 ##RUN THE RF MODEL##
@@ -340,7 +337,8 @@ cor6 = cor(predictionsAYT, gv(AYT))
 AYT@ebv= as.matrix(predictionsAYT)
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
+VarietySel = selectInd(AYT, 1, use="ebv", top=TRUE)
+Variety = self(VarietySel)
 
 ## pull genetic value for each generation to write results ##
 
@@ -402,6 +400,5 @@ corMat[5,] <- cor5
 corMat[6,] <- cor6
 corMat <- as.data.frame(corMat)
 write.csv(corMat, "RF_stratifiedClustersLG_Correlation_SR_Yield.csv")
-
 
 
