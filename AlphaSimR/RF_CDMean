@@ -126,19 +126,19 @@ F2 = self(F1, nProgeny = 6)
 
 ###### BUILD GS MODEL #####
 
- ##Pull genotypes and phenotypes##
+##Pull genotypes and phenotypes##
 
-    y = pheno(F2)
-    M = pullSnpGeno(F2)
-    M = M-1
-  
-    dim(M) ## tells how large samples should be ##
-    dim(y)
-  
-  
-  
-  SampleOptimiz <- read.csv("TRN_SRNM.csv") ##This file was created by running the Rincent et al 2012 optimization algorithm##
-  SampleOptimiz <- SampleOptimiz[,2]
+y = pheno(F2)
+M = pullSnpGeno(F2)
+M = M-1
+
+dim(M) ## tells how large samples should be ##
+dim(y)
+
+
+
+SampleOptimiz <- read.csv("TRN_SR.csv") ##This file was created by running the Rincent et al 2012 optimization algorithm##
+SampleOptimiz <- SampleOptimiz[,2]
 
 M <- as.data.frame(pullSnpGeno(F2))
 genoTrain <- M[SampleOptimiz,]
@@ -149,43 +149,47 @@ phenoTrain <- as.matrix(y[SampleOptimiz,])
 
 Optim_train <- cbind(phenoTrain, genoTrain)
 colnames(Optim_train) <- paste("ID", 1:ncol(Optim_train), sep="")
-                              
-  ##build model##
-  
-  control <- trainControl(method='repeatedcv', 
+
+##build model##
+
+control <- trainControl(method='repeatedcv', 
                         number=10, ##will test 10 different values for mtry (number of variables for splitting) ##
                         repeats=3,
-                        search = "random")        
+                        search = "random")    
 
-  rf_fit = train(ID1 ~ ., 
-              data = Optim_train, 
-              method = "rf",
-              tuneLength= 10,
-              trControl=control) ## search a random tuning grid ##
-              
-  ### This command takes about 90 minutes in an compute canada interactive session ###
-              
- ## look at the parameters of the model ##
- print(rf) 
-  
+bestmtry <- tuneRF(Optim_train,Optim_train$ID1,stepFactor = 1.2, improve = 0.01, trace=T, plot= T)
+
+rf_fit = train(ID1 ~ ., 
+               data = Optim_train, 
+               method = "rf",
+               tuneLength= 10,
+               trControl=control) ## search a random tuning grid ##
+
+### This command takes about 90 minutes in an compute canada interactive session ###
+
+## look at the parameters of the model ##
+print(rf) 
+
 #make predictions##
-  
+
 
 phenoF2 <- pheno(F2)
 genoF2 <- pullSnpGeno(F2)
 popF2 <- cbind(phenoF2, genoF2)
 colnames(popF2) <- paste("ID",1:ncol(popF2), sep="")  
+
 predictionsF2 <- as.numeric(predict(rf_fit, popF2))
-  
+
 cor1 = cor(predictionsF2, gv(F2))
-  
+
 #set ebvs#
-  
-F2@ebv= as.matrix(predictions)
+
+F2@ebv= as.matrix(predictionsF2)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3Sel = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3 = self(F3Sel)
 
 ##RUN THE RF MODEL##
 
@@ -207,7 +211,8 @@ F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 30, use="ebv", top=TRUE) 
+F4Sel = selectFam(F3, 30, use="ebv", top=TRUE) 
+F4 = self(F4Sel)
 
 ##RUN THE RF MODEL##
 
@@ -230,8 +235,8 @@ F4@ebv= as.matrix(predictionsF4)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 15, use="ebv", top=TRUE)
-
+F5Sel = selectFam(F4, 15, use="ebv", top=TRUE)
+F5 = self(F5Sel)
 
 ##RUN THE RF MODEL##
 
@@ -254,8 +259,8 @@ F5@ebv= as.matrix(predictionsF5)
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE) 
-
+PYTSel = selectWithinFam(F5, 4, use="ebv", top=TRUE) 
+PYT = self(PYTSel)
 
 ##RUN THE RF MODEL##
 
@@ -277,8 +282,8 @@ PYT@ebv= as.matrix(predictionsPYT)
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
-
+AYTSel = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+AYT = self(AYTSel)
 
 ##RUN THE RF MODEL##
 
@@ -299,7 +304,9 @@ cor6 = cor(predictionsAYT, gv(AYT))
 AYT@ebv= as.matrix(predictionsAYT)
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
+
+VarietySel = selectInd(AYT, 1, use="ebv", top=TRUE)
+Variety = self(VarietySel)
 
 ## pull genetic value for each generation to write results ##
 
@@ -322,6 +329,35 @@ PYTgv <- gv(PYT)
 AYTgv <- gv(AYT)
 Varietygv <- gv(Variety)
 
+F1gv <- as.data.frame(F1gv)
+F1gv$generation <- rep("F1", times=nrow(F1gv))
+
+F2gv <- as.data.frame(F2gv)
+F2gv$generation <- rep("F2", times=nrow(F2gv))
+
+F3gv <- as.data.frame(F3gv)
+F3gv$generation <- rep("F3", times=nrow(F3gv))
+
+
+F4gv <- as.data.frame(F4gv)
+F4gv$generation <- rep("F4", times=nrow(F4gv))
+
+F5gv <- as.data.frame(F5gv)
+F5gv$generation <- rep("F5", times=nrow(F5gv))
+
+PYTgv <- as.data.frame(PYTgv)
+PYTgv$generation <- rep("PYT", times=nrow(PYTgv))
+
+AYTgv <- as.data.frame(AYTgv)
+AYTgv$generation <- rep("AYT", times=nrow(AYTgv))
+
+Varietygv <- as.data.frame(Varietygv)
+Varietygv$generation <- rep("Variety", times=nrow(Varietygv))
+
+allResults <- rbind(F1gv, F2gv, F3gv,F4gv,F5gv,PYTgv,AYTgv,Varietygv)
+write.csv(allResults, "RF_cdMean_Allgvs_SR_Yield.csv")
+
+
 ###list correlations to view model performacne ##
 corMat <- matrix(nrow=6, ncol=1)
 corMat[1,] <- cor1
@@ -330,4 +366,5 @@ corMat[3,] <- cor3
 corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
-
+corMat <- as.data.frame(corMat)
+write.csv(corMat, "RF_cdMean_Correlation_SR_Yield.csv")
