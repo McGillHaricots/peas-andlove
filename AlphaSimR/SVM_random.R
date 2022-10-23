@@ -1,6 +1,9 @@
 ### This script will carry out a GS breeding strategy on the population you provide in the genotype file. 
 ### The GS model is Support Vector Machine and the training set is determined randomly ###
 
+### This script will carry out a GS breeding strategy on the population you provide in the genotype file. 
+### The GS model is Support Vector Machine and the training set is determined randomly ###
+
 ## load required packages ##
 
 library(AlphaSimR)
@@ -107,38 +110,39 @@ founderPop = newMapPop(genMap,
 ##define simulation parameters##
 
 SP <- SimParam$new(founderPop)
-SP$addTraitA(5,mean=35)
-SP$setVarE(h2=0.7)
-SP$addSnpChip(40)
+SP$addTraitADE(10, mean=1350)
+SP$setVarE(h2=0.25)
+SP$addSnpChip(57)
 
 ## generate parents and cross to form F1 ##
-
+set.seed(123)
 Parents = newPop(founderPop)
 F1 = randCross(Parents, 100) 
 
 ## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 5 )
+F2 = self(F1, nProgeny = 5) 
 
-##Build GS model using F2 as TRN to get EBVs##
+SampleOptimiz <- read.csv("TRN_SR.csv") ##This file was created by running the Rincent et al 2012 optimization algorithm##
+SampleOptimiz <- SampleOptimiz[,2]
 
-set.seed(123)
+M <- as.data.frame(pullSnpGeno(F2))
+genoTrain <- M[SampleOptimiz,]
+
 y <- pheno(F2)
-x <- pullSnpGeno(F2)
-popF2 = as.data.frame(cbind(y,x))
-colnames(popF2) <- paste("ID",1:(ncol(y) + ncol(x)), sep="")
+y <- as.data.frame(y)
+phenoTrain <- as.matrix(y[SampleOptimiz,])
 
-train_index <- sample(1:nrow(popF2), 0.9 * nrow(popF2))
-SR_train <- popF2[train_index, ]
-SR_test <- popF2[-train_index, ]
+Optim_train <- cbind(phenoTrain, genoTrain)
+colnames(Optim_train) <- paste("ID", 1:ncol(Optim_train), sep="")
 
 ##fit model, predict pheno on all markers
-fit = svm(ID1 ~ ., data = SR_train, kernel = "radial", cost = 10, scale = FALSE)
+fit = svm(ID1 ~ ., data = Optim_train, kernel = "radial", cost = 10, scale = FALSE)
 
 ##Use model to predict EBVs###
 
 genoF2 <- pullSnpGeno(F2)
-colnames(genoF2) <- paste("ID", 2:(ncol(genoF2) +1), sep="")
+colnames(genoF2) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsF2 = as.numeric(predict(fit,genoF2))
 
@@ -150,13 +154,13 @@ F2@ebv= as.matrix(predictionsF2)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
-
+F3Sel = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3 = self(F3Sel)
 
 ##RUN THE SVM MODEL##
 
 genoF3 <- pullSnpGeno(F3)
-colnames(genoF3) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
+colnames(genoF3) <- paste("ID", 2:ncol(Optim_train), sep="")
 predictionsF3 = predict(fit,genoF3)
 
 
@@ -168,13 +172,13 @@ F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 30, use="ebv", top=TRUE) 
-
+F4Sel = selectFam(F3, 30, use="ebv", top=TRUE) 
+F4 = self(F4Sel)
 
 ##RUN THE SVM MODEL##
 
 genoF4 <- pullSnpGeno(F4)
-colnames(genoF4) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
+colnames(genoF4) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsF4 = predict(fit,genoF4)
 
@@ -187,13 +191,13 @@ F4@ebv= as.matrix(predictionsF4)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 15, use="ebv", top=TRUE)
-
+F5Sel = selectFam(F4, 15, use="ebv", top=TRUE)
+F5 = self(F5Sel)
 
 ##RUN THE SVM MODEL##
 
 genoF5 <- pullSnpGeno(F5)
-colnames(genoF5) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
+colnames(genoF5) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsF5 = predict(fit,genoF5)
 
@@ -204,16 +208,15 @@ cor4 = cor(predictionsF5, gv(F5))
 
 F5@ebv= as.matrix(predictionsF5)
 
-
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)  
-
+PYTSel = selectWithinFam(F5, 4, use="ebv", top=TRUE)  
+PYT = self(PYTSel)
 
 ##RUN THE SVM MODEL##
 
 genoPYT <- pullSnpGeno(PYT)
-colnames(genoPYT) <- paste("ID", 2:(ncol(genoF3) +1), sep="")
+colnames(genoPYT) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsPYT = predict(fit,genoPYT)
 
@@ -223,19 +226,17 @@ cor5 = cor(predictionsPYT, gv(PYT))
 
 PYT@ebv= as.matrix(predictionsPYT)
 
-
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
-
+AYTSel = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+AYT = self(AYTSel)
 
 ##RUN THE SVM MODEL##
 
 genoAYT <- pullSnpGeno(AYT)
-colnames(genoAYT) <- paste("ID", 2:2:(ncol(genoF3) +1), sep="")
+colnames(genoAYT) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsAYT = predict(fit,genoAYT)
-
 
 cor6 = cor(predictionsAYT, gv(AYT))
 
@@ -244,29 +245,19 @@ cor6 = cor(predictionsAYT, gv(AYT))
 AYT@ebv= as.matrix(predictionsAYT)
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
+VarietySel = selectInd(AYT, 1, use="ebv", top=TRUE)
+Variety = self(VarietySel)
 
 ## pull genetic value for each generation ##
 
-
-gv = list(Parents = mean(gv(Parents)),
-          F1 = mean(gv(F1)),
-          F2 = mean(gv(F2)),
-          F3 = mean(gv(F3)),
-          F4 = mean(gv(F4)),
-          F5 = mean(gv(F5)),
-          PYT = mean(gv(PYT)),
-          AYT = mean(gv(AYT)),
-          Variety = mean(gv(Variety)))
-
-F1gv <- gv(F1)
-F2gv <- gv(F2)
-F3gv <- gv(F3)
-F4gv <- gv(F4)
-F5gv <- gv(F5)
-PYTgv <- gv(PYT)
-AYTgv <- gv(AYT)
-Varietygv <- gv(Variety)
+F1gv <- as.numeric(gv(F1))
+F2gv <- as.numeric(gv(F2))
+F3gv <- as.numeric(gv(F3))
+F4gv <- as.numeric(gv(F4))
+F5gv <- as.numeric(gv(F5))
+PYTgv <- as.numeric(gv(PYT))
+AYTgv <- as.numeric(gv(AYT))
+Varietygv <- as.numeric(gv(Variety))
 
 ###list correlations to view model performacne ##
 corMat <- matrix(nrow=6, ncol=1)
@@ -276,3 +267,4 @@ corMat[3,] <- cor3
 corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
+
