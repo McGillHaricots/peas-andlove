@@ -223,7 +223,8 @@ AYT@ebv <- as.matrix(EBVAYT)
 cor6 = cor(gv(AYT),ebv(AYT))
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1, use="ebv")
+VarietySel = selectInd(AYT, 1, use="ebv")
+Variety = self(VarietySel)
 
 ## pull genetic value for each generation and write results ##
 
