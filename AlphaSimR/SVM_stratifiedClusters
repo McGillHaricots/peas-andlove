@@ -18,7 +18,7 @@ library(factoextra)
 
 ## read in genotype file, should have both chromosomes, 1 2 or 0 1 format##
 
-genotypes <- as.data.frame(read_xlsx("SRNM_geno.xlsx"))
+genotypes <- as.data.frame(read_xlsx("SR_geno.xlsx"))
 genotypes <- genotypes[1:1000,]
 
 
@@ -111,9 +111,9 @@ founderPop = newMapPop(genMap,
 
 ##define simulation parameters##
 SP <- SimParam$new(founderPop)
-SP$addTraitA(5,mean=35)
-SP$setVarE(h2=0.7)
-SP$addSnpChip(40)
+SP$addTraitADE(10,mean=1350)
+SP$setVarE(h2=0.25)
+SP$addSnpChip(57)
 
 ## generate parents and cross to form F1 ##
 
@@ -129,7 +129,7 @@ F2 = self(F1, nProgeny = 5 )
 set.seed(23489)
 y <- pheno(F2)
 M <- as.data.frame(pullSnpGeno(F2))
-popF2 = as.data.frame(cbind(y,x))
+popF2 = as.data.frame(cbind(y,M))
 colnames(popF2) <- paste("ID",1:ncol(popF2), sep="")
 
 
@@ -164,15 +164,15 @@ cluster7 <- clusterData[clusterData$cluster==7,]
 cluster8 <- clusterData[clusterData$cluster==8,]
 cluster9 <- clusterData[clusterData$cluster==9,]
 
-trn1 <- cluster1[sample(0.3*nrow(cluster1)),]
-trn2 <- cluster2[sample(0.3*nrow(cluster2)),]
-trn3 <- cluster3[sample(0.3*nrow(cluster3)),]
-trn4 <- cluster4[sample(0.3*nrow(cluster4)),]
-trn5 <- cluster5[sample(0.3*nrow(cluster5)),]
-trn6 <- cluster6[sample(0.3*nrow(cluster6)),]
-trn7 <- cluster7[sample(0.3*nrow(cluster7)),]
-trn8 <- cluster8[sample(0.3*nrow(cluster8)),]
-trn9 <- cluster9[sample(0.3*nrow(cluster9)),]
+trn1 <- cluster1[sample(0.7*nrow(cluster1)),]
+trn2 <- cluster2[sample(0.7*nrow(cluster2)),]
+trn3 <- cluster3[sample(0.7*nrow(cluster3)),]
+trn4 <- cluster4[sample(0.7*nrow(cluster4)),]
+trn5 <- cluster5[sample(0.7*nrow(cluster5)),]
+trn6 <- cluster6[sample(0.7*nrow(cluster6)),]
+trn7 <- cluster7[sample(0.7*nrow(cluster7)),]
+trn8 <- cluster8[sample(0.7*nrow(cluster8)),]
+trn9 <- cluster9[sample(0.7*nrow(cluster9)),]
 TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
 
 
@@ -207,8 +207,8 @@ F2@ebv= as.matrix(predictionsF2)
 
 ## select top individuals to form F3 ##
 
-F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
-
+F3Sel = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3 = self(F3Sel)
 
 ##RUN THE SVM MODEL##
 
@@ -225,8 +225,8 @@ F3@ebv= as.matrix(predictionsF3)
 
 ##select top families from F3 to form F4 ##
 
-F4 = selectFam(F3, 30, use="ebv", top=TRUE) 
-
+F4Sel = selectFam(F3, 30, use="ebv", top=TRUE) 
+F4 = self(F4Sel)
 
 ##RUN THE SVM MODEL##
 
@@ -244,8 +244,8 @@ F4@ebv= as.matrix(predictionsF4)
 
 ## select top families from F4 to form F5 ##
 
-F5 = selectFam(F4, 15, use="ebv", top=TRUE)
-
+F5Sel = selectFam(F4, 15, use="ebv", top=TRUE)
+F5 = self(F5Sel)
 
 ##RUN THE SVM MODEL##
 
@@ -264,8 +264,8 @@ F5@ebv= as.matrix(predictionsF5)
 
 ## select top families from F5 to form preliminary yield trial ##
 
-PYT = selectWithinFam(F5, 4, use="ebv", top=TRUE)  
-
+PYTSel = selectWithinFam(F5, 4, use="ebv", top=TRUE)  
+PYT = self(PYTSel)
 
 ##RUN THE SVM MODEL##
 
@@ -283,8 +283,8 @@ PYT@ebv= as.matrix(predictionsPYT)
 
 ## select top plants from PYT to form advanced yield trial ##
 
-AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
-
+AYTSel = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE) 
+AYT = self(AYTSel)
 
 ##RUN THE SVM MODEL##
 
@@ -293,7 +293,6 @@ colnames(genoAYT) <- paste("ID", 2:ncol(Optim_train), sep="")
 
 predictionsAYT = predict(fit,genoAYT)
 
-
 cor6 = cor(predictionsAYT, gv(AYT))
 
 #set ebvs#
@@ -301,11 +300,8 @@ cor6 = cor(predictionsAYT, gv(AYT))
 AYT@ebv= as.matrix(predictionsAYT)
 
 ## select top plants to form variety ##
-Variety = selectInd(AYT, 1, use="ebv", top=TRUE)
-
-## pull genetic value for each generation ##
-
-## pull genetic value for each generation ##
+VarietySel = selectInd(AYT, 1, use="ebv", top=TRUE)
+Variety = self(VarietySel)
 
 ## pull genetic value for each generation and write results ##
 
