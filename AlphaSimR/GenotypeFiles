@@ -1,0 +1,7 @@
+There are three genotype files
+
+Each file contains a population of individuals that has undergone different pressures
+
+SR = self pollination and recombination
+SRN = self pollination, recombination, and natural selection
+SRNM = self pollination, recombinatino, natural selection, and migration between subpopulations 
