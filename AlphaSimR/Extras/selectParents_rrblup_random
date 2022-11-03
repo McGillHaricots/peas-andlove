@@ -1,0 +1,25 @@
+y = as.data.frame(readRDS("trainingPhenoSR.Rdata"))
+M = as.data.frame(readRDS("trainingGenoSR.Rdata"))
+
+trainIndex <- as.matrix(sample(1:200, 0.9*(nrow(M)))) ## out of the 500 samples, pull 90% of them
+testIndex <- setdiff(1:200, trainIndex)
+
+phenoTrain <- y[trainIndex,]
+genoTrain <- M[trainIndex,]
+
+BV_yield <- phenoTrain[,1]
+BV_flowering <- phenoTrain[,2]
+
+EBVans <-mixed.solve(BV_flowering, Z=genoTrain, K=NULL, SE=FALSE, return.Hinv=FALSE)
+
+markerEffects <- as.matrix(EBVans$u)
+markerEffects <- as.vector(markerEffects)
+
+## Estimate EBVs of Elite Lines (PYT) ##
+M_PYT = pullSegSiteGeno(PYT)
+G_PYT = M_PYT-1
+PYTebv <- G_PYT*markerEffects
+PYT@ebv <- as.matrix(PYTebv)
+
+newParents=selectInd(PYT, 10, use="ebv", top=TRUE)
+saveRDS(newParents, "newParents_SR_Flowering_Random")
