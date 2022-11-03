@@ -153,6 +153,7 @@ BV <- phenoTrain
 EBVans <-mixed.solve(BV, Z=genoTrain, K=NULL, SE=FALSE, return.Hinv=FALSE)
 
 markerEffects <- as.matrix(EBVans$u)
+markerEffects <- as.vector(markerEffects)
 
 ## Estimate EBVs of Elite Lines (PYT) ##
 M_PYT = pullSegSiteGeno(PYT)
