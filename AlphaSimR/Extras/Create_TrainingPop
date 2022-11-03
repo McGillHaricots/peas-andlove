@@ -1,0 +1,41 @@
+genMap <- readRDS("phaseolusMap.Rdata")
+haplotypes <- readRDS("srnmAlphaHaplotypes.Rdata")
+
+founderPop = newMapPop(genMap, 
+                       haplotypes, 
+                       inbred = FALSE, 
+                       ploidy = 2L)
+
+SP <- SimParam$new(founderPop)
+SP$addTraitADE(10, mean=1350)
+SP$addTraitA(5,mean=35)
+SP$setVarE(h2=c(0.25,0.75))
+
+Parents = newPop(founderPop)
+F1 = randCross(Parents, 100) ##randomly cross 100 parents##
+
+## self and bulk F1 to form F2 ##
+
+F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross## 
+
+F3Sel = selectFam(F2, 50, use="pheno", top=TRUE) 
+F3 = self(F3Sel)
+
+##select top families from F3 to form F4 ##
+
+F4Sel = selectFam(F3, 30, use="pheno") 
+F4 = self(F4Sel)
+
+## select top families from F4 to form F5 ##
+
+F5Sel = selectFam(F4, 15, use="pheno")
+F5 = self(F5Sel)
+
+PYTSel = selectFam(F5, 8, use="pheno") 
+PYT = self(PYTSel, nProgeny = 5)
+
+trainingGeno <- pullSegSiteGeno(PYT)
+trainingPheno <- pheno(PYT)
+
+saveRDS(trainingGeno, "trainingGenoSRNM.Rdata")
+saveRDS(trainingPheno, "trainingPhenoSRNM.Rdata")
