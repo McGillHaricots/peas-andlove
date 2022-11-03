@@ -4,11 +4,10 @@
 
 SP <- SimParam$new(founderPop)
 SP$addTraitADE(10, mean=1350)
-SP$addTraitA(5,mean=35)
-SP$setVarE(h2=c(0.25,0.75))
+SP$setVarE(h2=0.25)
 
-newParents=readRDS("newParents_rrBLUP_random_yield.Rdata")
-markerEffects <- readRDS("markerEffects_rrBLUP_random_yield.Rdata")
+newParents=readRDS("newParents_SR_Yield_Random.Rdata")
+markerEffects <- readRDS("markerEffects_SR_Yield_Random.Rdata")
 
 F1 = randCross(newParents, 100) ##randomly cross 0 parents##
 
@@ -16,36 +15,13 @@ F1 = randCross(newParents, 100) ##randomly cross 0 parents##
 
 F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross## 
 
-##Build GS model using F2##
-
-y = pheno(F2)
-M = pullSnpGeno(F2)
-M = M-1
-
-dim(M) ## tells how large samples should be ##
-dim(y)
-
-trainIndex <- as.matrix(sample(1:500, 0.9*(nrow(M)))) ## out of the 500 samples, pull 90% of them
-testIndex <- setdiff(1:500, trainIndex)
-
-phenoTrain <- y[trainIndex,]
-genoTrain <- M[trainIndex,]
-
-phenoValid <- y[testIndex,]
-genoValid <- M[testIndex,]
-
-BV <- phenoTrain
-
-EBVans <-mixed.solve(BV, Z=genoTrain, K=NULL, SE=FALSE, return.Hinv=FALSE)
-
-markerEffects <- EBVans$u
-
-EBV <- M %*% markerEffects ##multiply markers by estimated effects to getEBV
-
-
+##set EBV using BLUP model##
+M_F2 <-pullSegSiteGeno(F2)
+G_F2 = M_F2-1
+EBVF2 <- G_F2 %*% markerEffects
 
 ## Set EBVs using model##
-F2@ebv <- as.matrix(EBV)
+F2@ebv <- as.matrix(EBVF2)
 
 cor1 = cor(gv(F2), ebv(F2))
 
@@ -54,7 +30,7 @@ cor1 = cor(gv(F2), ebv(F2))
 F3 = selectFam(F2, 50, use="ebv", top=TRUE) 
 
 ##set EBV using BLUP model##
-M_F3 <-pullSnpGeno(F3)
+M_F3 <-pullSegSiteGeno(F3)
 G_F3 = M_F3-1
 EBVF3 <- G_F3 %*% markerEffects
 
@@ -67,7 +43,7 @@ cor2 = cor(gv(F3),ebv(F3))
 F4 = selectFam(F3, 30, use="ebv") 
 
 ##set EBV using BLUP model##
-M_F4 <-pullSnpGeno(F4)
+M_F4 <-pullSegSiteGeno(F4)
 G_F4 = M_F4-1
 EBVF4 <- G_F4 %*% markerEffects
 
@@ -81,7 +57,7 @@ F5 = selectFam(F4, 15, use="ebv")
 
 
 ##set EBV using BLUP model##
-M_F5 <-pullSnpGeno(F5)
+M_F5 <-pullSegSiteGeno(F5)
 G_F5 = M_F5-1
 EBVF5 <- G_F5 %*% markerEffects
 
@@ -95,7 +71,7 @@ PYT = selectWithinFam(F5, 4, use="ebv")
 
 
 ##set EBV using BLUP model##
-M_PYT <-pullSnpGeno(PYT)
+M_PYT <-pullSegSiteGeno(PYT)
 G_PYT = M_PYT-1
 EBVPYT <- G_PYT %*% markerEffects
 
@@ -108,7 +84,7 @@ AYT = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 
 
 ##set EBV using BLUP model##
-M_AYT <-pullSnpGeno(AYT)
+M_AYT <-pullSegSiteGeno(AYT)
 G_AYT = M_AYT-1
 EBVAYT <- G_AYT %*% markerEffects
 
