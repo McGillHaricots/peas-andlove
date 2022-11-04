@@ -1,6 +1,6 @@
 
-M <- pullSegSiteGeno(TrainingPop)
-y <- pheno(TrainingPop)
+M <- TrainingGeno
+y <- TrainingPheno
 
 trainIndex <- as.matrix(sample(1:nInd(TrainingPop), 0.8*(nrow(M)))) 
 
