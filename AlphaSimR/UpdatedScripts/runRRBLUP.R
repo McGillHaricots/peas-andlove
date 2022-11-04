@@ -1,59 +1,23 @@
-genMap <- readRDS("genMap.Rdata")
-haplotypes <- readRDS("srAlphaHaplo.Rdata")
+#Load required packages
+library(AlphaSimR)
+library(rrBLUP)
 
-founderPop = newMapPop(genMap, 
-                       haplotypes, 
-                       inbred = FALSE, 
-                       ploidy = 2L)
+#source training population 
+source("buildTrainingPop.R")
 
-SP <- SimParam$new(founderPop)
-SP$addTraitADE(10, mean=1350)
-SP$setVarE(h2=0.3)
- 
-Parents = newPop(founderPop)
-F1 = randCross(Parents, 100) ##randomly cross 100 parents##
+#source GS Prediction Model
+source("rrBLUP_randomTRN.R")
 
-## self and bulk F1 to form F2 ##
 
-F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross## 
+#Select parents from previous AYT
 
-F3Sel = selectFam(F2, 50, use="pheno", top=TRUE) 
-F3 = self(F3Sel)
+M = pullSegSiteGeno(AYT)
+AYTebv <- M*markerEffects
+AYT@ebv <- as.matrix(AYTebv)
 
-##select top families from F3 to form F4 ##
+newParents = selectInd(AYT, 10, use="ebv", top=TRUE)
 
-F4Sel = selectFam(F3, 30, use="pheno", top=TRUE) 
-F4 = self(F4Sel)
-
-## select top families from F4 to form F5 ##
-
-F5Sel = selectFam(F4, 15, use="pheno", top=TRUE)
-F5 = self(F5Sel)
-
-PYTSel = selectFam(F5, 8, use="pheno", top=TRUE) 
-PYT = self(PYTSel, nProgeny = 5)
-
-AYTSel = selectWithinFam(PYT, 4, use="pheno", top=TRUE)
-AYT = self(AYTSel, nProgeny=5)
-TrainingPop <- self(AYT, nProgeny=5)
-
-M <- pullSegSiteGeno(TrainingPop)
-y <- pheno(TrainingPop)
-
-trainIndex <- as.matrix(sample(1:nInd(TrainingPop), 0.8*(nrow(M)))) 
-
-phenoTrain <- y[trainIndex,]
-genoTrain <- M[trainIndex,]
-
-BV <- phenoTrain
-  
-EBVans <-mixed.solve(BV, Z=genoTrain, K=NULL, SE=FALSE, return.Hinv=FALSE)
-markerEffects <- EBVans$u
-markerEffects <- as.vector(markerEffects)
-
-newParents = selectInd(AYT, 10, use="pheno", top=TRUE)
-
-## START NEW CYCLE ##
+#START NEW CYCLE
 
 F1 = randCross(newParents, 100) ##randomly cross 0 parents##
 
@@ -72,7 +36,7 @@ cor1 = cor(gv(F2), ebv(F2))
 
 ## select top families to form F3 ##
 
-F3Sel = selectFam(F2, 50, use="ebv", top=TRUE) 
+F3Sel = selectFam(F2, 45, use="ebv", top=TRUE) 
 F3 = self(F3Sel)
 
 ##set EBV using BLUP model##
