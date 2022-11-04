@@ -42,5 +42,12 @@ AYTSel = selectWithinFam(PYT, 5, use="pheno", top=TRUE)
 AYT = self(AYTSel, nProgeny=4)
 AYT = setPheno(AYTSel, reps=4)
 
-TrainingPop <- self(AYT, nProgeny=5)
+AYTpheno <- pheno(AYT)
+PYTpheno <- pheno(PYT)
+
+AYTgeno <- pullSegSiteGeno(AYT)
+PYTgeno <- pullSegSiteGeno(PYT)
+
+TrainingGeno <- rbind(AYTgeno, PYTgeno)
+TrainingPheno <- rbind(AYTpheno, PYTpheno)
 
