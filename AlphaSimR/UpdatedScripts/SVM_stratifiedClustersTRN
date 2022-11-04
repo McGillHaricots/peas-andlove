@@ -55,7 +55,7 @@ trn10 <- cluster9[sample(0.9*nrow(cluster10)),]
 TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9, trn10)
 TRN <- TRN[,1]
 
-M <- as.data.frmae(TrainingGeno)
+M <- as.data.frame(TrainingGeno)
 OptimGeno <- M[TRN,]
 
 y <- as.data.frame(TrainingPheno)
@@ -63,7 +63,7 @@ OptimPheno <- as.data.frame(y[TRN,])
 
 
 trainingpop <- cbind(OptimPheno, OptimGeno)
-colnames(Training) <- paste("ID",1:ncol(Training), sep="") ##1-605 because the SNP chip has 605 SNPs + phenotypes may have to change if you have a different num. SNPS###
+colnames(trainingpop) <- paste("ID",1:ncol(trainingpop), sep="") ##1-605 because the SNP chip has 605 SNPs + phenotypes may have to change if you have a different num. SNPS###
 ##note ID1 will be the phenotype, IDs 2-606 are genotypes##
 
 colnames(trainingpop) <- paste("ID",ncol(trainingpop), sep="")
@@ -71,6 +71,9 @@ colnames(trainingpop) <- paste("ID",ncol(trainingpop), sep="")
 train_index <- sample(1:nrow(trainingpop), 0.9 * nrow(trainingpop))
 trainingset <- trainingpop[train_index, ]
 testingset <- trainingpop[-train_index, ]
+
+colnames(trainingset) <- paste("ID",1:ncol(trainingset), sep="")
+
 
 ##fit model, predict pheno on all markers
 svm_fit = svm(ID1 ~ ., data = trainingset, kernel = "radial", cost = 10, scale = FALSE)
