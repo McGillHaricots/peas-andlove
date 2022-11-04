@@ -63,3 +63,5 @@ BV <- OptimPheno
 EBVans <-mixed.solve(BV, Z=OptimGeno, K=NULL, X=NULL, SE=FALSE, return.Hinv=FALSE)
 
 markerEffects <- matrix(EBVans$u)
+markerEffects <- as.vector(markerEffects)
+
