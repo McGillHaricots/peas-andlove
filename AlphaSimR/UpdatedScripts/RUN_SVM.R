@@ -13,11 +13,11 @@ source("buildTrainingPop.R")
 source("SVM_randomTRN.R")
 
 
-M = pullSegSiteGeno(AYT)
-AYTebv <- as.numeric(predict(svm_fit, M))
-AYT@ebv <- as.matrix(AYTebv)
+M = pullSegSiteGeno(PYT)
+PYTebv <- as.numeric(predict(svm_fit, M))
+PYT@ebv <- as.matrix(PYTebv)
 
-newParents = selectInd(AYT, 10, use="ebv", top=TRUE)
+newParents = selectInd(PYT, 10, use="ebv", top=TRUE)
 
 F1 = randCross(newParents, 100) ##randomly cross 0 parents##
 
