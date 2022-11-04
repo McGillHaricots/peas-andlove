@@ -10,10 +10,11 @@ library(e1071)
 source("buildTrainingPop.R")
 
 #source GS Prediction Model
-source("SVM_randomTRN.R")
+source("SVM_stratifiedClustersTRN.R")
 
 
-M = pullSegSiteGeno(PYT)
+M = as.data.frame(pullSegSiteGeno(PYT))
+colnames(M) <- paste("ID",2:(ncol(M)+1),sep="")
 PYTebv <- as.numeric(predict(svm_fit, M))
 PYT@ebv <- as.matrix(PYTebv)
 
@@ -26,9 +27,10 @@ F1 = randCross(newParents, 100) ##randomly cross 0 parents##
 F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross## 
 
 ##set EBV using BLUP model##
-M_F2 <-pullSegSiteGeno(F2)
+M_F2 <-as.data.frame(pullSegSiteGeno(F2))
 G_F2 = M_F2-1
 
+colnames(G_F2) <- paste("ID",2:(ncol(G_F2)+1),sep="")
 EBVF2 <- as.numeric(predict(svm_fit, G_F2))
 
 F2@ebv <- as.matrix(EBVF2)
@@ -41,8 +43,10 @@ F3Sel = selectFam(F2, 45, use="ebv", top=TRUE)
 F3 = self(F3Sel)
 
 ##set EBV using BLUP model##
-M_F3 <-pullSegSiteGeno(F3)
+M_F3 <-as.data.frame(pullSegSiteGeno(F3))
 G_F3 = M_F3-1
+
+colnames(G_F3) <- paste("ID",2:(ncol(G_F3)+1),sep="")
 EBVF3 <-as.numeric(predict(svm_fit, G_F3))
 
 F3@ebv <- as.matrix(EBVF3)
@@ -56,9 +60,11 @@ F4 = self(F4Sel)
 
 
 ##set EBV using BLUP model##
-M_F4 <-pullSegSiteGeno(F4)
+M_F4 <-as.data.frame(pullSegSiteGeno(F4))
 G_F4 = M_F4-1
-EBVF4 <- <-as.numeric(predict(svm_fit, G_F4))
+
+colnames(G_F4) <- paste("ID",2:(ncol(G_F4)+1),sep="")
+EBVF4 <-as.numeric(predict(svm_fit, G_F4))
 
 F4@ebv <- as.matrix(EBVF4)
 
@@ -71,9 +77,11 @@ F5 = self(F5Sel)
 
 
 ##set EBV using BLUP model##
-M_F5 <-pullSegSiteGeno(F5)
+M_F5 <-as.data.frame(pullSegSiteGeno(F5))
 G_F5 = M_F5-1
-EBVF5 <- <-as.numeric(predict(svm_fit, G_F5))
+
+colnames(G_F5) <- paste("ID",2:(ncol(G_F5)+1),sep="")
+EBVF5 <- as.numeric(predict(svm_fit, G_F5))
 
 F5@ebv <- as.matrix(EBVF5)
 
@@ -85,9 +93,11 @@ PYTSel = selectWithinFam(F5, 4, use="ebv")
 PYT = self(PYTSel)
 
 ##set EBV using BLUP model##
-M_PYT <-pullSegSiteGeno(PYT)
+M_PYT <-as.data.frame(pullSegSiteGeno(PYT))
 G_PYT = M_PYT-1
-EBVPYT <- <-as.numeric(predict(svm_fit, G_PYT))
+
+colnames(G_PYT) <- paste("ID",2:(ncol(G_PYT)+1),sep="")
+EBVPYT <- as.numeric(predict(svm_fit, G_PYT))
 
 PYT@ebv <- as.matrix(EBVPYT)
 cor5 = cor(gv(PYT),ebv(PYT))
@@ -98,9 +108,11 @@ AYTSel = selectInd(PYT,  20, use="ebv", reps=5, top=TRUE)
 AYT = self(AYTSel)
 
 ##set EBV using BLUP model##
-M_AYT <-pullSegSiteGeno(AYT)
+M_AYT <-as.data.frame(pullSegSiteGeno(AYT))
 G_AYT = M_AYT-1
-EBVAYT <- <-as.numeric(predict(svm_fit, G_AYT))
+
+colnames(G_AYT) <- paste("ID",2:(ncol(G_AYT)+1),sep="")
+EBVAYT <- as.numeric(predict(svm_fit, G_AYT))
 
 AYT@ebv <- as.matrix(EBVAYT)
 
@@ -139,5 +151,4 @@ corMat[3,] <- cor3
 corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
-
 ## write files - naming convention: "model_trainingSet_descriptor_populationType_trait.csv" ###
