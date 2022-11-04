@@ -5,9 +5,8 @@ library(ggplot2)
 library(cluster)
 library(factoextra)
 
-M <- pullSegSiteGeno(TrainingPop)
-M <- as.data.frame(M)
-y <- pheno(TrainingPop)
+M <- as.data.frame(TrainingGeno)
+y <- as.data.frame(TrainingPheno)
 
 newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
 
