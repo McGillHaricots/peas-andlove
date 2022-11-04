@@ -53,7 +53,7 @@ TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
 
 TRN <- TRN[,1]
 
-rownames(M) <- c(601:1100)
+rownames(M) <- c(1:nrow(M))
 OptimGeno <- M[TRN,]
 y <- as.data.frame(y)
 OptimPheno <- y[TRN,]
