@@ -1,3 +1,4 @@
+
 genMap <- readRDS("genMap.Rdata")
 haplotypes <- readRDS("srAlphaHaplo.Rdata")
 
@@ -19,35 +20,28 @@ F2 = self(F1, nProgeny = 5)##nProgeny = number of progeny per cross##
 F2 = setPheno(F2)
 
 F3Sel = selectFam(F2, 50, use="pheno", top=TRUE) 
-F3 = self(F3Sel,nProgeny = 4)
-F3 = setPheno(F3Sel)
+F3 = self(F3Sel)
+F3 = setPheno(F3)
 
 ##select top families from F3 to form F4 ##
 
 F4Sel = selectFam(F3, 30, use="pheno", top=TRUE) 
-F4 = self(F4Sel,nProgeny = 4)
-F4 = setPheno(F4Sel)
+F4 = self(F4Sel)
+F4 = setPheno(F4)
 
 ## select top families from F4 to form F5 ##
 
 F5Sel = selectFam(F4, 15, use="pheno", top=TRUE)
-F5 = self(F5Sel, nProgeny = 4)
-F5 = setPheno(F5Sel)
+F5 = self(F5Sel)
+F5 = setPheno(F5)
 
 PYTSel = selectFam(F5, 8, use="pheno", top=TRUE) 
-PYT = self(PYTSel, nProgeny=4)
-PYT = setPheno(PYTSel, reps=2)
+PYT = self(PYTSel)
+PYT = setPheno(PYT, reps=2)
 
-AYTSel = selectWithinFam(PYT, 5, use="pheno", top=TRUE)
-AYT = self(AYTSel, nProgeny=4)
-AYT = setPheno(AYTSel, reps=4)
+TP = self(PYT, nProgeny = 5)
 
-AYTpheno <- pheno(AYT)
-PYTpheno <- pheno(PYT)
+TrainingGeno <- pullSegSiteGeno(TP)
+TrainingPheno <- pheno(TP)
 
-AYTgeno <- pullSegSiteGeno(AYT)
-PYTgeno <- pullSegSiteGeno(PYT)
-
-TrainingGeno <- rbind(AYTgeno, PYTgeno)
-TrainingPheno <- rbind(AYTpheno, PYTpheno)
 
