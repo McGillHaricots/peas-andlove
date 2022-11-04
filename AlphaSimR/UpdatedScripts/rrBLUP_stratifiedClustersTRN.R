@@ -29,7 +29,8 @@ clusterData <- clusters$data
 
 clusterData <- clusterData[order(clusterData$cluster),]
 
-cluster1 <- clusterData[clusterData$cluster==1,]
+for i in 1:k
+clusteri <- clusterData[clusterData$cluster==1,]
 cluster2 <- clusterData[clusterData$cluster==2,]
 cluster3 <- clusterData[clusterData$cluster==3,]
 cluster4 <- clusterData[clusterData$cluster==4,]
@@ -61,6 +62,6 @@ BV <- OptimPheno
 
 EBVans <-mixed.solve(BV, Z=OptimGeno, K=NULL, X=NULL, SE=FALSE, return.Hinv=FALSE)
 
-markerEffects <- matrix(EBVans$u)
+markerEffects <- as.matrix(EBVans$u)
 markerEffects <- as.vector(markerEffects)
 
