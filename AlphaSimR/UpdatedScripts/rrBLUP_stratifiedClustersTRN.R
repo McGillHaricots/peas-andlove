@@ -8,8 +8,6 @@ library(factoextra)
 M <- as.data.frame(TrainingGeno)
 y <- as.data.frame(TrainingPheno)
 
-newgeno <- M %>%  select(where(~ n_distinct(.) > 1))
-
 colnames(newgeno) =NULL
 
 PCAgeno <- prcomp(newgeno, center=TRUE, scale=TRUE) ##take out categorical columns##
@@ -38,17 +36,19 @@ cluster6 <- clusterData[clusterData$cluster==6,]
 cluster7 <- clusterData[clusterData$cluster==7,]
 cluster8 <- clusterData[clusterData$cluster==8,]
 cluster9 <- clusterData[clusterData$cluster==9,]
+cluster10 <- clusterData[clusterData$cluster==10,]
 
-trn1 <- cluster1[sample(0.8*nrow(cluster1)),]
-trn2 <- cluster2[sample(0.8*nrow(cluster2)),]
-trn3 <- cluster3[sample(0.8*nrow(cluster3)),]
-trn4 <- cluster4[sample(0.8*nrow(cluster4)),]
-trn5 <- cluster5[sample(0.8*nrow(cluster5)),]
-trn6 <- cluster6[sample(0.8*nrow(cluster6)),]
-trn7 <- cluster7[sample(0.8*nrow(cluster7)),]
-trn8 <- cluster8[sample(0.8*nrow(cluster8)),]
-trn9 <- cluster9[sample(0.8*nrow(cluster9)),]
-TRN <- rbind(trn1, trn2,trn3,trn4,trn5,trn6,trn7,trn8,trn9)
+trn1 <- cluster1[sample(0.9*nrow(cluster1)),]
+trn2 <- cluster2[sample(0.9*nrow(cluster2)),]
+trn3 <- cluster3[sample(0.9*nrow(cluster3)),]
+trn4 <- cluster4[sample(0.9*nrow(cluster4)),]
+trn5 <- cluster5[sample(0.9*nrow(cluster5)),]
+trn6 <- cluster6[sample(0.9*nrow(cluster6)),]
+trn7 <- cluster7[sample(0.9*nrow(cluster7)),]
+trn8 <- cluster8[sample(0.9*nrow(cluster8)),]
+trn9 <- cluster9[sample(0.9*nrow(cluster9)),]
+trn10 <- cluster9[sample(0.9*nrow(cluster10)),]
+TRN <- rbind(trn1, trn2,trn3,trn4,trn5, trn6, trn7,trn8,trn9,trn10)
 
 TRN <- TRN[,1]
 
@@ -63,4 +63,3 @@ EBVans <-mixed.solve(BV, Z=OptimGeno, K=NULL, X=NULL, SE=FALSE, return.Hinv=FALS
 
 markerEffects <- as.matrix(EBVans$u)
 markerEffects <- as.vector(markerEffects)
-
