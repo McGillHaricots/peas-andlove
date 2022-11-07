@@ -29,8 +29,7 @@ clusterData <- clusters$data
 
 clusterData <- clusterData[order(clusterData$cluster),]
 
-for i in 1:k
-clusteri <- clusterData[clusterData$cluster==1,]
+cluster1 <- clusterData[clusterData$cluster==1,]
 cluster2 <- clusterData[clusterData$cluster==2,]
 cluster3 <- clusterData[clusterData$cluster==3,]
 cluster4 <- clusterData[clusterData$cluster==4,]
