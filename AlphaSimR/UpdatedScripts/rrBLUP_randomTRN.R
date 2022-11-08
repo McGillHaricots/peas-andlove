@@ -1,8 +1,8 @@
 
-M <- TrainingGeno
-y <- TrainingPheno
+M <- as.data.frame(TrainingGeno)
+y <- as.data.frame(TrainingPheno)
 
-trainIndex <- as.matrix(sample(1:nInd(TrainingPop), 0.8*(nrow(M)))) 
+trainIndex <- as.matrix(sample(1:nInd(TP), 0.75*(nrow(M)))) 
 
 phenoTrain <- y[trainIndex,]
 genoTrain <- M[trainIndex,]
