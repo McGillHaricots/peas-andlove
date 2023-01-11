@@ -1,40 +1,7 @@
-i = 5
-
-nIndF1 = nInd(F1)
-nIndF2 = nInd(F2)
-nIndF3 = nInd(F3)
-nIndF4 = nInd(F4)
-nIndF5 = nInd(F5)
-nIndPYT = nInd(PYT)
-nIndAYT = nInd(AYT)
-nIndVariety = 1
-nGen = 9
-nModels = 6
-nReps = 5
-
-## establish empty matrices to hold outputs##
-F1results <- matrix(nrow=nIndF1, ncol=nReps)
-F2results <- matrix(nrow=nIndF2, ncol=nReps) 
-F3results <- matrix(nrow=nIndF3, ncol=nReps) 
-F4results <- matrix(nrow=nIndF4, ncol=nReps) 
-F5results <- matrix(nrow=nIndF5, ncol=nReps) 
-PYTresults <- matrix(nrow=nIndPYT, ncol=nReps) 
-AYTresults <- matrix(nrow=nIndAYT, ncol=nReps)
-Varietyresults <- matrix(nrow=nIndVariety, ncol=nReps) 
-gvAveResults <- matrix(nrow=nGen, ncol=nReps)
-corResults <- matrix(nrow=nModels, ncol=nReps)
-
-repeat{
-
 F1 = makeCross(newCycleSelections, crossPlan = cross, nProgeny = 5)
 
-F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross## 
+F2 = self(F1, nProgeny = 5) ##nProgeny = number of progeny per cross## cor
 
-source("SelectParentsF2.R")
-
-source("rrBLUP_random.R")
-
-##set EBV using BLUP model##
 M_F2 <-pullSegSiteGeno(F2)
 G_F2 = M_F2-1
 EBVF2 <- G_F2 %*% markerEffects
@@ -43,11 +10,13 @@ F2@ebv <- as.matrix(EBVF2)
 
 cor1 = cor(gv(F2), ebv(F2))
 
+rm(newCycleSelections)
+
 source("SelectParentsF2.R")
 
 ## select top families to form F3 ##
 
-F3Sel = selectFam(F2, 40, use="ebv", top=TRUE) 
+F3Sel = selectFam(F2, 20, use="ebv", top=TRUE) 
 F3 = self(F3Sel)
 
 ##set EBV using BLUP model##
@@ -61,7 +30,7 @@ cor2 = cor(gv(F3),ebv(F3))
 
 ##select top families from F3 to form F4 ##
 
-F4Sel = selectFam(F3, 20, use="ebv", top=TRUE) 
+F4Sel = selectFam(F3, 15, use="ebv", top=TRUE) 
 F4 = self(F4Sel)
 
 ##set EBV using BLUP model##
@@ -129,14 +98,7 @@ PYTgv <- as.vector(mean(gv(PYT)))
 AYTgv <- as.vector(mean(gv(AYT)))
 Varietygv <- as.vector(mean(gv(Variety)))
 
-F1results[,i] = F1gv
-F2results[,i] = F2gv
-F3results[,i] = F3gv
-F4results[,i] = F4gv
-F5results[,i] = F5gv
-PYTresults[,i] = PYTgv
-AYTresults[,i] = AYTgv
-Varietyresults[,i] = Varietygv
+
 
 ###list correlations to view model performacne ##
 corMat <- matrix(nrow=6, ncol=1)
@@ -147,11 +109,6 @@ corMat[4,] <- cor4
 corMat[5,] <- cor5
 corMat[6,] <- cor6
 
-corResults[,i] <- corMat
 
-}
 
-if (i > 5){ ##break at number of desired reps##
-  break
-}
   
