@@ -9,6 +9,14 @@ source("createTP.R")
 
 #START NEW CYCLE
 
+#Select parents from previous AYT
+
+M_PYT1 = pullSegSiteGeno(PYT)
+PYT1ebv <- M_PYT1*markerEffects
+PYT@ebv <- as.matrix(PYT1ebv)
+
+newParents = selectInd(PYT, 10, use="ebv", top=TRUE)
+
 F1 = randCross(newParents, 100) ##randomly cross 0 parents##
 
 ## self and bulk F1 to form F2 ##
