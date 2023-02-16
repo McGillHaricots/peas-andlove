@@ -1,0 +1,17 @@
+ssh -Y ich@beluga.computecanada.ca
+
+cd projects
+cd def-haricots
+cd ich
+
+salloc -- time=3:00:00 --mem=50G --account=def-haricots
+module load python gcc r 
+
+
+virtualenv --no-download tensorflow
+source tensorflow/bin/activate
+
+pip install --no-index --upgrade pip
+pip install keras
+
+R
