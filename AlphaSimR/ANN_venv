@@ -27,7 +27,7 @@ use_virtualenv(Sys.getenv('VIRTUAL_ENV'))
 #####
 
 
-salloc -- time=5:00:00 --mem=80G --account=def-haricots
+salloc -- time=5:00:00 --mem=150G --account=def-haricots
 module load python gcc r 
 
 source ENV/bin/activate
