@@ -23,3 +23,21 @@ R
 install.packages("devtools")
 library(tensorflow)
 use_virtualenv(Sys.getenv('VIRTUAL_ENV'))
+ 
+#####
+
+
+salloc -- time=5:00:00 --mem=80G --account=def-haricots
+module load python gcc r 
+
+source ENV/bin/activate
+
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+
+R
+
+library(devtools)
+library(keras)
+library(tensorflow)
+use_virtualenv(Sys.getenv('VIRTUAL_ENV'))
