@@ -1,51 +1,34 @@
-library(AlphaSimR)
-library(readxl)
-library(writexl)
-library(rrBLUP)
+library(tidyverse)
 library(keras)
-library(tensorflow)
 library(readr)
 library(BMTME)
 
-#BUILD ANN using F1 as TP ##
+#BUILD ANN using PYT TP ##
 
 ## create GRM ##
-geno <- as.matrix(TrainingGeno)
-GM <- tcrossprod(geno)/dim(geno)
-LG <- cholesky(GM)
 
+X <- as.matrix(TrainingGeno)
 Y <- as.matrix(TrainingPheno)
-X = LG
 
-## create data frame with geno and pheno data ##
+train_index <- sample(1:nrow(Y), 0.75 * nrow(Y))
+X_train <- X[train_index, ]
+Y_train <- Y[train_index,]
 
-phenotypes <- as.data.frame(Y)
-genotypes <- as.data.frame(geno)
-data <-cbind(phenotypes,genotypes)
+X_test <- X[-train_index, ]
+Y_test <- Y[-train_index, ]
 
-## random training testing partition using BMTME ##
-
-data <- data.frame(GID=data)
-CrossV <- CV.KFold(data, DataSetID='GID')
-
-## one holdout CV ##
-
-tst_set <- CrossV$CrossValidation_list[[2]]
-No_Epoch = 1000
-N_Units = 33
-X_trn = X[-tst_set,]
-X_tst = X[tst_set,]
-Y_trn = Y[-tst_set,]
-Y_tst = Y[tst_set,]
 
 ## Build model using pipe operator ##
+N_Units = ncol(X_train)
+No_Epoch = 100
+
 
 build_model <- function() {
   model <- keras_model_sequential()
   model %>%
     layer_dense(units =N_Units, activation = "relu", input_shape = c(dim
-                                                                     (X_trn)[2])) %>%
-    layer_dropout(rate = 0.1) %>%
+                                                                     (X_train)[2])) %>%
+    layer_dropout(rate = 0.5) %>%
     layer_dense(units = 1, activation = "linear")
   model %>% compile(
     loss = "mse",
@@ -58,27 +41,14 @@ build_model <- function() {
 model <- build_model()
 model %>% summary()
 
-## fitting and plotting the model ##
-
-print_dot_callback <- callback_lambda(
-  on_epoch_end = function(epoch, logs) {
-    if (epoch %% 20 == 0) cat("\n")
-    cat(".")
-  })
-
 ## inner training and validation ##
 
 model_fit <- model %>% fit(
-  X_trn, Y_trn,
+  X_train, Y_train,
   shuffle=F,
-  epochs = No_Epoch, batch_size = 640,
+  epochs = No_Epoch, batch_size = 10,
   validation_split = 0.2,
-  verbose = 0,
-  callbacks = list(print_dot_callback))
-
-## plot ## 
-
-plot(model_fit)
+  verbose = 0)
 
 ## Refit model using early stopping ##
 
@@ -86,35 +56,9 @@ early_stop <- callback_early_stopping(monitor="val_loss", mode='min', patience =
 
 model_Final <- build_model()
 model_fit_Final <- model_Final%>%fit(
-  X_trn, Y_trn,
+  X, Y,
   shuffle=F,
-  epochs = No_Epoch, batch_size=640,
+  epochs = No_Epoch, batch_size=10,
   validation_split = 0.2,
-  verbose=0, callbacks = list(early_stop, print_dot_callback)
+  verbose=0, callbacks = list(early_stop)
 )
-
-## plot history of training process ##
-
-length(model_fit_Final$metrics$mean_squared_error)
-plot(model_fit_Final)
-
-## predition to see how model performs##
-
-prediction = model_Final %>% predict(X_tst)
-Predicted = c(prediction)
-Observed = Y_tst
-plot(Observed, Predicted)
-MSE = mean((Observed-Predicted)^2)
-MSE
-Obs_Pred = cbind(Observed, Predicted)
-colnames(Obs_Pred) = c("Observed", "Predicted")
-Obs_Pred
-
-###### Model is built, continue with breeding simulation #####
-
-## Use model to predict F2 EBV ##
-
-geno <- pullSnpGeno(F2)
-geno <- as.matrix(geno)
-GM <- tcrossprod(geno)/dim(geno)
-LGF2 <- cholesky(GM)
