@@ -7,7 +7,8 @@ library(BMTME)
 
 ## create GRM ##
 
-X <- as.matrix(TrainingGeno)
+G <- as.matrix(TrainingGeno)
+X <- tcrossprod(G)/dim(G)
 Y <- as.matrix(TrainingPheno)
 
 train_index <- sample(1:nrow(Y), 0.75 * nrow(Y))
