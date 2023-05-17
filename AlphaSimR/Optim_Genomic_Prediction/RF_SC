@@ -54,7 +54,8 @@ TRN <- do.call(rbind, datalist)
 
 TRN <- TRN[,1]
 
-OptimGeno <- M[TRN,]
+G <- as.matrix(M[TRN,])
+OptimGeno <- tcrossprod(G)/dim(G)
 y <- as.data.frame(y)
 OptimPheno <- y[TRN,]
 
