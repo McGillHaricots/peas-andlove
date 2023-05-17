@@ -59,7 +59,8 @@ TRN <- TRN[,1]
 
 M <- as.data.frame(x)   
 rownames(M) <- c(1:nrow(M))
-OptimGeno <- M[TRN,]
+G <- as.matrix(M[TRN,])
+OptimGeno <- tcrossprod(G)/dim(G)
 y <- as.data.frame(y)
 OptimPheno <- as.data.frame(y[TRN,])
 
