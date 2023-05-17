@@ -1,6 +1,7 @@
 set.seed(123)
 y <- TrainingPheno
-x <- TrainingGeno
+G <- as.matrix(TrainingGeno)
+x <- tcrossprod(G)/dim(G)
 Training = as.data.frame(cbind(y,x))
 colnames(Training) <- paste("ID",1:(ncol(y) + ncol(x)), sep="")
 
