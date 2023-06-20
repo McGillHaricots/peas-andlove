@@ -34,4 +34,11 @@ for (i in 1:nreps) {
   datalist[[i]] <- freqList
   
 }
+
+#datalist contains a list of nReps dataframes, each with MAF at each generation
+#next step will be to pull out and merge each gen from each rep and average
+
+check <- datalist[[1]]
+check <- do.call(cbind,check)
+
  
