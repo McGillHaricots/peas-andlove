@@ -10,11 +10,13 @@ data=data[,-2]
 data=na.omit(data)
 
 # define parents
-C11223 = data[2,]
-C11269 = data[3,]
-C11212 = data[4,]
-C14504 = data[5,]
-C17031 = data[6,]
+C11223 = t(data[,2])
+C11269 = t(data[,3])
+C11212 = t(data[,4])
+C14504 = t(data[,5])
+C17031 = t(data[,6])
+
+snpNames = t(data[,1])
 
 # combine parents for each cross
 C1 = as.data.frame(rbind(snpNames,C11223,C11269))
@@ -25,7 +27,7 @@ C5 = as.data.frame(rbind(snpNames,C17031,C11223))
 C6 = as.data.frame(rbind(snpNames,C17031,C11269))
 C7 = as.data.frame(rbind(snpNames,C17031,C14504))
 C8 = as.data.frame(rbind(snpNames,C11212,C14504))
-C9 = as.data.frame(rbind(C17031,C11212))
+C9 = as.data.frame(rbind(snpNames,C17031,C11212))
 C4 = as.data.frame(rbind(snpNames,C11223,C14504))
 
 #remove SNPs where alleles are the same for both parents
