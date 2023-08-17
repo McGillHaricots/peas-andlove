@@ -1,4 +1,3 @@
-
 library(GGEBiplots)
 library(metan)
 
@@ -106,11 +105,12 @@ f <- plot(gge_model,
           type = 3,
           size.shape.win = 5,
           large_label = 6,
-          col.gen = "black",
-          col.env = "gray")
+          col.gen = "orange",
+          col.env = "blue")
 arrange_ggplot(f)
 
 #DISCRIMINITAVENESS VS REPRESENTATIVENESS
+gge_model <- gge(dataUpdated, env, geno, yield,centering = "2", scaling="1", svp = "3")
 h <- plot(gge_model,
           type = 4,
           plot_theme = theme_metan_minimal())
@@ -159,13 +159,13 @@ p <- plot(gge_model,
           type = 8,
           col.gen = "orange",
           col.env = "blue",
-          size.text.gen = 1,
+          size.text.gen = 2,
           axis_expand = 1.5,
           plot_theme = theme_metan(grid="both"))
 arrange_ggplot(p)
 
 #RELATIONSHIP AMONG ENV
-gge_model <- gge(dataUpdated, env, geno, yield)
+gge_model <- gge(dataUpdated, env, geno, yield, centering = "2", scaling="1",svp="2")
 t <- plot(gge_model,
           type = 10,
           col.gen = "black")
@@ -173,3 +173,66 @@ arrange_ggplot(t)
 
 
 ##REF https://tiagoolivoto.github.io/metan/articles/vignettes_gge.html
+
+
+#### Conduct analysis by year
+data = read.csv("KelvinData.csv")
+data$Adjusted.Yield <- as.numeric(as.character(data$Adjusted.Yield))  # yield was character, must be numeric
+
+
+means = list() # mean yield across reps at for each geno
+genotypes = list() # will hold geno id at hand
+loc = list() # will hold loc id at hand 
+year = list() # will hold year id at hand 
+
+
+i = 1
+x = 1 
+while (i < nrow(data)){
+  yields = data[(i:(i+2)),5] # yield is 3th column
+  yieldMean = mean(yields) # mean yield for each rep 
+  means[[x]] = yieldMean # assign mean
+  genotypes[[x]] = data[i,1] # take down genotype id
+  loc[[x]] = data[i,2] # take down loca
+  year[[x]] = data[i,3]
+  i = i + 3 # move on to next set of 3 obs 
+  x = x + 1 #fill in next spot in list
+}
+
+means = as.data.frame(t(means))
+genotypes = as.data.frame(t(genotypes))
+loc = as.data.frame(t(loc))
+year = as.data.frame(t(year))
+
+dataUpdated = as.data.frame(t(rbind(genotypes, means, loc, year)))
+colnames(dataUpdated) = c("geno","yield","loc","year") #new dataUpdated gives genotype, mean yield, and location
+dataUpdated <- as.data.frame(lapply(dataUpdated, unlist))
+
+#RELATIONSHIP AMONG YEARS
+gge_model <- gge(dataUpdated, year, geno, yield, centering = "2", scaling="1",svp="2")
+t <- plot(gge_model,
+          type = 10,
+          col.gen = "black")
+arrange_ggplot(t)
+#### Conduct analysis by location 
+
+#RELATIONSHIP AMONG LOCATIONS
+gge_model <- gge(dataUpdated, loc, geno, yield, centering = "2", scaling="1",svp="2")
+t <- plot(gge_model,
+          type = 10,
+          col.gen = "black")
+arrange_ggplot(t)
+
+
+#WHICH WON WHERE
+gge_model <- gge(dataUpdated, env, geno, yield, svp = "symmetrical")
+f <- plot(gge_model,
+          type = 3,
+          size.shape.win = 5,
+          large_label = 3,
+          col.gen = "orange",
+          col.env = "blue",
+          axis_expand = 1.5)
+arrange_ggplot(f)
+
+
