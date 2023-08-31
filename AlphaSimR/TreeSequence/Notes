@@ -1,0 +1,8 @@
+1) take genotypes from each consecutive cycle and put them into 1 DF with observations in rows and loci in columns
+2) genotypes should be numbered
+3) loci should be numbered 
+4) add a row to the data indicating the alleles at each locus 
+5) add a row indicating whether or not ancestral allele is the 0 or 1
+
+6) in python, use tsinfer.SampleData() to create a SampleData object
+7) run SampleData into tsinfer.Infer() command 
