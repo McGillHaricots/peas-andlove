@@ -6,3 +6,12 @@
 
 6) in python, use tsinfer.SampleData() to create a SampleData object
 7) run SampleData into tsinfer.Infer() command 
+
+
+Wed Sept 6
+tsinfer requires position and alleles for each of the sites
+loci are added one by one to the sample data
+in order to  get positions and alleles, I took the genetic map I used in ASR and lined it up (in R) with the original
+  DF of loci locations from our SNP data(genome studio export file)
+Then I created a data frame with an ID number for each locus, its location(morgans), and its alleles
+I wrote a function that would pass over the DF of genotypes and the DF of locus information and add each locus using sample_data.add_site
