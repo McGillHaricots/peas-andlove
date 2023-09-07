@@ -15,3 +15,13 @@ in order to  get positions and alleles, I took the genetic map I used in ASR and
   DF of loci locations from our SNP data(genome studio export file)
 Then I created a data frame with an ID number for each locus, its location(morgans), and its alleles
 I wrote a function that would pass over the DF of genotypes and the DF of locus information and add each locus using sample_data.add_site
+
+Thu Sep 7
+Created a tree sequence from all of the data in cycles 1 and 2. it was just too big. 
+
+Creating a tree sequence to look just at a small subset of the genomes as a proof of concept for these plots.
+
+We do not need to take all data from the beginning of the program because that information is inferred by the genotypes of the 
+late gen individuals 
+
+I will pull PYTs and look at the TS for those only 
