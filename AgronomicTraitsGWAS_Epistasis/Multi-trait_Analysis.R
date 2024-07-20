@@ -8,7 +8,7 @@
 install.packages("data.table")
 install.packages("ggplot2")
 install.packages("jsonlite")
-install.packages("C:/Users/alexa/ALEXANDER/1. McGill/1. Thesis/2. GWAS/asreml_4.2.0.302.zip", 
+install.packages("asreml", 
                  repos=NULL, type="win.binary")
 install.packages("msm")
 library(remotes); install_github("matthewwolak/nadiv", ref = "devel")
@@ -19,11 +19,6 @@ install.packages("doMC", repos="http://R-Forge.R-project.org")
 # ********************
 ### Load Libraries ###
 # ********************
-
-# load libraries and other requirements *functions from source
-### Workflow running the MTMM with the full sequencing data from Arabidopsis 1001 Genomes project 
-### updated version 16.08.19
-### This version uses ASREML-R versiion 4 
 
 ## ASREML library needs a valid license 
 library(lattice)
@@ -38,7 +33,7 @@ library(parallel)
 library(ggplot2)
 library(dplyr)  
 library(tidyverse)
-#scripts to source. All scripts can be found in the github folder 
+#scripts to source. All scripts can be found in the github folder from Korte et al. (2012)
 source('scripts/emma.r')
 source('scripts/mtmm_estimates_as4.r')
 source('scripts/plots_gwas.r')
