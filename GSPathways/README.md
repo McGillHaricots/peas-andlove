@@ -4,7 +4,7 @@ Run the program by downloading the RunSimulations folder. Open R and change your
 
 Under the RunSimulations folder, the data folder contains the genotype information and genetic map used for these simulations. Users may replace these files with their own population data if they wish. 
 
-The Data folder contains data used for "Simulatios of Genomic Selection Implementation Pathways in Common Bean Using RRBLUP and Artificial Neural Netowrks"
+The Data folder contains results from "Simulatios of Genomic Selection Implementation Pathways in Common Bean Using RRBLUP and Artificial Neural Netowrks"
 
 The Data Visualization folder contains the code used to create the figures for the above paper.
      
