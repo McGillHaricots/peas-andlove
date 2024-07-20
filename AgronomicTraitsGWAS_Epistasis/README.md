@@ -1,10 +1,11 @@
 # Single-trait, Multi-trait and Epistasis analysis of Agronomic traits in common bean
 
 This folder contains the data and the scripts used for the multi-trait GWAS and genome-wide Epistasis analyses of Agronomic traits in common bean Cordoba-Novoa and Hoyos-Villegas (2024).
+It is recommended to refer to the manual of the tools and original publications.
 
 The single-Trait analyses were conducted using [GAPITv3](https://github.com/jiabowang/GAPIT) 
 The Multi-trait analyses are based on the method published by [Korte et al. (2012)](https://www.nature.com/articles/ng.2376). 
-The epistasis analysis is based on the 3VmrMLM method by [Li et al. (2022)](https://www.sciencedirect.com/science/article/pii/S1674205222000600)
+The epistasis analysis is based on the 3VmrMLM method by [Li et al. (2022)](https://www.sciencedirect.com/science/article/pii/S1674205222000600). Run on a Linux system. Due to computational requirements, it is not recomended to run on Windows.
 
 
 #### References
