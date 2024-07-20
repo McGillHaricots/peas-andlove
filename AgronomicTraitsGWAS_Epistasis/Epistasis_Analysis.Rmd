@@ -1,0 +1,31 @@
+---
+title: "Epistasis GWAS"
+author: "Henry Cordoba"
+date: "2024-05-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Installation of requirements
+
+```{r}
+
+install.packages(c("lars","RcppEigen","Rcpp","doParallel","data.table","MASS","openxlsx",
+"BEDMatrix","bigmemory","stringr","biglasso","progress","ncvreg","coin","sampling","sbl")) 
+
+install.packages("/Epistasis/Linux/IIIVmrMLM.zip",
+                 repos=NULL, type="source")
+
+install.packages("IIIVmrMLM", lib = "/Epistasis/IIIVmrMLM_R/IIIVmrMLM_1.0.zip")
+
+devtools::install_local("/Epistasis/IIIVmrMLM_1.0.zip")
+
+library(IIIVmrMLM)
+epistasis<-IIIVmrMLM(fileGen="data/MDP_285genotypes.hmp.txt", fileKin="data/GAPIT.Genotype.Kin_EMMA_forQQI.csv", filePS="data/PCA_SNPFiltered.txt", filePhe="data/Phenotype_allCombinedforQQI.txt", method="Epistasis")
+
+
+```
+
