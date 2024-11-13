@@ -1,0 +1,68 @@
+---
+title: "Fig2-SensorCalibration"
+---
+
+## Loading Packages
+- Package files and their corresponding manuals can be found in the '02_Packages' folder in the current working directory.
+```{r include=TRUE, message = FALSE, error=FALSE,warning=FALSE}
+library(ggplot2) #required for graphing
+library(readxl) #required for read_excel function
+library(tidyverse) #contains ggplot2, dplyr, tidyr, readr, purrr, tibble, stringr, forcats packages 
+```
+
+## Loading Data
+- Excel file with raw data is in the '03_Analysis' folder in the current working directory, which can be double checked by typing in 'getwd()' into the console.
+```{r include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+mydata <- read_excel("Fig2-SensorCalibration.xlsx", sheet = 2, col_types = c("text", "numeric", "numeric"))
+```
+
+#3 Calculate Sensitivty of Three Sensor Types - i.e. the slope if tehe regression models for the three sensors
+```{r include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+fabricdata<-filter(mydata, SensorType == "Fabric"); #filtering my data to just Carbon data
+#m <- lm(Voltage ~ pH, fabricdata)
+fabricSens<-round(coef(lm(Voltage ~ pH, fabricdata))[2], digits=2) #lm part create a linear equation of Voltage vs pH, then the slope is remove (coefficient 2 and roudned to 2 digits)
+fabricSens
+
+silverdata<-filter(mydata, SensorType == "Silver"); #filtering my data to just Carbon data
+#m <- lm(Voltage ~ pH, fabricdata)
+silverSens<-round(coef(lm(Voltage ~ pH, silverdata))[2], digits=2) #lm part create a linear equation of Voltage vs pH, then the slope is remove (coefficient 2 and roudned to 2 digits)
+silverSens
+
+carbondata<-filter(mydata, SensorType == "Carbon"); #filtering my data to just Carbon data
+#m <- lm(Voltage ~ pH, fabricdata)
+carbonSens<-round(coef(lm(Voltage ~ pH, carbondata))[2], digits=2) #lm part create a linear equation of Voltage vs pH, then the slope is remove (coefficient 2 and roudned to 2 digits)
+carbonSens
+
+```
+
+
+## Creating Fig2 graph
+```{r include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+Fig2 <- ggplot(data=mydata,aes(x=pH, y=Voltage, shape = SensorType)) + #Shape=Senors, causes all points from 1 sensor type to have a specific dot shape
+  geom_point(aes(color = SensorType), size=0.5) +  #each point will be colored according to its type
+  ylab("Millivolt (mV)") +
+  scale_x_continuous(breaks=c(4, 7, 10), limits = c(3.7,10.3)) + #set x axis
+  scale_color_brewer(palette="Dark2") + #to create color blind friendly colors
+  theme_classic() + #changes style
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE, aes(color = SensorType)) +  #add regression line and colors it by sensor type
+  ggtitle("Calibration of Carbon, Fabric, and Silver pH Sensors") + # add title
+  theme(plot.title = element_text(hjust = 0.3, vjust=2, color="black", size=8, face="bold")) + #move title to center
+  geom_text(x = 9.7, y = 130, label = c("18.25 mV/pH"), size=3) + #adds in Fabric sensor sensitivity (fabricSens) to a specific location
+  geom_text(x = 9.7, y = 25, label = c("3.21 mV/pH"),size=3) + #adds in Silver sensor sensitivity (silverSens) to a specific location
+  geom_text(x = 8.9, y = 245, label = c("35.25 mV/pH"),size=3) + #c("34.73 mV/pH") #adds in Carbon sensor sensitivity (carbonSens)  to a specific location
+  theme(axis.text.x = element_text(size=8, color="black"))+ # x axis font size and color
+  theme(axis.text.y = element_text(size=8, color="black")) # y axis font size and color
+
+Fig2<-Fig2+theme(panel.grid.major.y = element_line(colour = "grey", linetype="dashed")) #adding grid lines to graph
+Fig2<-Fig2+theme(axis.title.x = element_text(size=8, color="black")) #changing x axis label font size and color
+Fig2<-Fig2+theme(axis.title.y = element_text(size=8, color="black")) #changing x axis label font size and color
+Fig2<-Fig2+theme(legend.text = element_text(size=8, color = "black")) # Legend style and color
+Fig2<-Fig2+theme(legend.position = "bottom") #Legend is moved to bottom of graph
+Fig2
+```
+
+## Saving Graph
+```{r include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+ggsave(plot=Fig2, file="Fig2-SensorCalibration.tiff", units="cm", width=9, height=9, dpi=300, compression='lzw')
+ggsave(plot=Fig2, file="Fig2-SensorCalibration.pdf", units="cm", width=9, height=9,dpi=300)
+```
