@@ -1,0 +1,106 @@
+---
+title: "Figure4-Control/NoTreatment pH"
+---
+## Loading Packages
+- Package files and their corresponding manuals can be found in the '02_Packages' 
+
+```{r include=TRUE, message=FALSE, echo=TRUE}
+library(readxl) #needed for loading xlsx file
+library(tidyverse) #contains ggplot2, dplyr, tidyr, readr, purrr, tibble, stringr, forcats packages 
+library(rstatix) #needed for tukey_hsd function
+library(ggpubr) #requires tidyverse to be loaded first, needed for graphs (e.g. ggboxplot function, and ggpar
+```
+#Loading Data for - No Treatmant - Fig 4a - Sensor pH converted from leaf surface mV
+```{r include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+SensorData<-read_excel("TableS1.xlsx",sheet = "Sensor-pH", col_types = c("numeric","numeric","text","numeric","text")) # loading excel, definning which sheet is loaded and define the type of column each is (have to set manually) - important later for stats
+SensorData$Cultivar <- factor(SensorData$Cultivar, levels = c("Beryl","G122","Eldorado", "ICA Bunsi", "Montrose", "Othello", "WM-1","WM-12")) #order the Cultivars (for graph later on))
+```
+
+## Splitting Data by Block - Blocks 1-3: Control/No Treatment, Block 4: Wounding Treatment
+```{r include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+SensorData<- SensorData %>% filter(Block < 4) #removes Block 4 from SensorData (Wounded Treatment)- will be used for inoculated plots in Fig6a
+```
+
+## Stats- Two-way ANOVA - Cultivar and Block for Figurea4a. Data showed in Table S2.
+```{r echo=FALSE}
+summary(aov(pH ~ Cultivar + Block + Cultivar*Block, data = SensorData))
+```
+
+#Figure4a - Control/No Treatment - Sensor pH
+```{r message=FALSE, warning=FALSE}
+Fig4a<-ggboxplot(SensorData,"Cultivar", "pH", add="jitter",color="TimePoint", title="Sensor - Leaf Surface mV Converted to pH")+
+theme(plot.title = element_text(hjust = 0.5, vjust = 2)) + #Move title to middle, move up a bit
+theme(plot.title = element_text(color="black", size=12)) + # change title font size
+xlab("") #remove the x axis label (Cultivar)
+
+Fig4a <- Fig4a + theme(axis.text.x = element_text(size=12,angle = 90,vjust = 0.4, hjust=1,color="black"))# x axis font size
+Fig4a <- Fig4a + theme(axis.text.y = element_text(size=12)) # y axis font size
+Fig4a <- Fig4a + theme(axis.title.x = element_text(size=12)) #changing x axis label font size
+Fig4a <- Fig4a + theme(axis.title.y = element_text(size=12)) #changing y axis label size
+Fig4a<-ggpar(Fig4a, legend = "none") # removes Legend
+Fig4a
+```
+
+## Loading data from No Treatment - Manually extracted pH - For Fig 4b
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=TRUE}
+ManualData<-read_excel("TableS1.xlsx",sheet = "Manual-pH", col_types = c("numeric","numeric","text","numeric","text")) # loading excel, definning which sheet is loaded and define the type of column each is (have to set manually) - important later for stats
+ManualData$Cultivar <- factor(ManualData$Cultivar, levels = c("Beryl","G122","Eldorado", "ICA Bunsi", "Montrose", "Othello", "WM-1","WM-12")) #order the Cultivars (for graph later on))
+```
+
+## Splitting Data by Block - Blocks 1-3: No Treatment, Block 4: Wounding Treatment
+```{r include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+ManualData<- ManualData %>% filter(Block < 4) #removes Block 4 from ManualData (Wounded Treatment)- will be used for inoculated plots in Fig6a
+```
+
+## Stats- Two-way ANOVA - Cultivar and Block for Fig4b. Data showed in Table S3.
+```{r echo=FALSE}
+summary(aov(pH ~ Cultivar + Block + Cultivar*Block, data = ManualData))
+```
+
+## Generating Figure4b
+```{r echo=FALSE}
+Fig4b<-ggboxplot(ManualData,"Cultivar", "pH", add="jitter",color="TimePoint", title="Manual - Leaf Apoplastic Fluid") +
+theme(plot.title = element_text(hjust = 0.5, vjust = 2)) + #Move title to middle, move up a bit
+theme(plot.title = element_text(color="black", size=12)) + # change title font size
+ylim(3.9, 8.1) + #ensures the y axis are the same between 4a and 4b
+xlab("") #remove the x axis label (Cultivar)
+
+Fig4b <- Fig4b + theme(axis.text.x = element_text(size=12,angle = 90,vjust = 0.4, hjust=1,color="black"))# x axis font size
+Fig4b <- Fig4b + theme(axis.text.y = element_text(size=12)) # y axis font size
+Fig4b <- Fig4b + theme(axis.title.x = element_text(size=12)) #changing x axis label font size
+Fig4b <- Fig4b + theme(axis.title.y = element_text(size=12)) #changing y axis label size
+Fig4b<-ggpar(Fig4b, legend = "none") # removes Legend
+Fig4b
+```
+
+#Combining Fig4a and Fig4b to make Fig4
+```{r}
+Fig4 <- ggarrange(Fig4a, Fig4b, ncol = 2, nrow = 1, labels = "auto", legend = "none", widths = c(2,1.4)) #width squashes Panel A graph
+Fig4
+```
+
+#Saving Figure4
+```{r}
+#Saving the plot as a tiff and pdf
+ggsave(plot=Fig4, file="Fig4-Control-pH.tiff", units="cm", width=18, height=12, dpi=600, compression='lzw')
+ggsave(plot=Fig4, file="Fig4-Control-pH.pdf", units="cm", width=18, height=12, dpi=600)
+```
+
+#Table S4 - Comparing pH changes in both approaches
+## Loading data from No Treatment - Manually extracted pH - For Fig 4b
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=TRUE}
+CompareData<-read_excel("TableS1.xlsx",sheet = "Compare Approaches", col_types = c("numeric","numeric","text","numeric","text")) # loading excel, definning which sheet is loaded and define the type of column each is (have to set manually) - important later for stats
+CompareData <- na.omit(CompareData) #removes NAs (some WM-12 rows)
+#CompareData$Cultivar <- factor(ManualData$Cultivar, levels = c("Beryl","G122","Eldorado", "ICA Bunsi", "Montrose", "Othello", "WM-1","WM-12")) #order the Cultivars (for graph later on))
+```
+
+## Stats- Two-way ANOVA - Cultivar and Measurement_Type for Table S4.
+```{r echo=FALSE}
+summary(aov(pH ~ Cultivar + Measurement_Type+ Cultivar*Measurement_Type, data = CompareData))
+```
+
+## Post-hoc Tests for calculating individual p values when comparing pre and post treatment within each Cultivar
+```{r echo=FALSE}
+CompareDataposthoc<-CompareData %>% group_by(Cultivar) %>% tukey_hsd(pH ~ Measurement_Type) 
+CompareDataposthoc
+```
