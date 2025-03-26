@@ -4,8 +4,6 @@ This repo includes code and data for conducting the experiments in:
 Data can be found in the data folder, with one file containing adjusted means, location, and genotype
 data for each trait. 
 
-The data folder also includes the data used to create the biplots in the biplots folder, with one .csv for each trait.
-
 Raw data can be found at https://github.com/McGillHaricots/CDBN-GeneticGain and at https://github.com/Alice-MacQueen/CDBNgenomics 
 
 There is one .py file for each model we implemented - Linear Regression (LinearRegressoin.py), 
