@@ -1,5 +1,5 @@
 ---
-title: "Simulation_AlphaSim"
+title: "Initital Parameter setting"
 author: "Henry Cordoba"
 output: html_document
 ---
