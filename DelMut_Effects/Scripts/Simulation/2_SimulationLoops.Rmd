@@ -1,0 +1,124 @@
+---
+title: "AlphaSim Loop simulations"
+author: "Henry Cordoba"
+output: html_document
+---
+
+```{r}
+suppressMessages(library(data.table))
+suppressMessages(library(dplyr))
+suppressMessages(library(AlphaSimR))
+
+```
+
+#Define function 1
+Check for trait heritability
+
+```{r}
+
+# Function to run a single cycle of the simulation
+run_cycle <- function(parents, crossPlan, maps, loci, cycle_number, nCrosses = 20 , nProgeny = 50, H2 = 0.45) {
+  if (cycle_number == 1) {
+    F1 <- makeCross(parents, crossPlan = crossPlan, nProgeny = nProgeny)
+  } else {
+    F1 <- randCross(parents, nCrosses = nCrosses, nProgeny = nProgeny)
+  }
+  
+  F2 <- self(F1)
+  F2Sel <- selectWithinFam(F2, nInd = nProgeny * 0.4, use = "pheno", top = TRUE)
+  F3 <- self(F2Sel)
+  F3 <- setPheno(F3)
+  
+  F3Sel <- selectWithinFam(F3, nInd = nProgeny * 0.3, use = "pheno", top = TRUE)
+  F4 <- self(F3Sel)
+  F4 <- setPheno(F4)
+  
+  F4Sel <- selectFam(F4, nCrosses * 0.5, use = "pheno", top = TRUE)
+  PYT <- self(F4Sel)
+  PYT <- setPheno(PYT)
+  
+  PYTSel <- selectFam(PYT, nCrosses * 0.2, use = "pheno", top = TRUE)
+  AYT <- self(PYTSel)
+  AYT <- setPheno(AYT)
+  
+  AYTSel <- selectFam(AYT, 1, use = "pheno", top = TRUE)
+  Variety <- self(AYTSel)
+  
+  GeneticGain <- mean(gv(Variety)) - mean(gv(parents)) 
+  DeltaVariance <- varG(AYT) - varG(parents)
+  
+  # Update parameters for next cycle
+  newHaplotype <- list()
+  for (chr in 1:11) {
+    chrHaplo <- pullSegSiteGeno(Variety, chr)
+    newHaplotype[[chr]] <- chrHaplo
+  }
+  newPheno <- pheno(Variety)
+  newParents <- newMapPop(genMap = maps, haplotypes = newHaplotype, inbred = TRUE, ploidy = 2L)
+  SP2 <- SimParam$new(newParents)
+  meanPheno <- mean(newPheno)
+  SP2$addTraitA(loci, mean = meanPheno)
+  SP2$setVarE(H2 = H2)
+  cycleipop <- newPop(newParents, simParam = SP2)
+  cycleipop@pheno <- newPheno
+  
+  list(Variety = Variety, GeneticGain = GeneticGain, DeltaVariance = DeltaVariance, cycleipop = cycleipop)
+}
+
+```
+
+#Define function 2
+
+```{r}
+
+run_simulation <- function(initial_parents, crossPlan, maps, loci, nReps = 50, nCycles = 10) {
+  all_genetic_gains <- matrix(0, nrow = nReps, ncol = nCycles)
+  all_delta_variances <- matrix(0, nrow = nReps, ncol = nCycles)
+  
+  for (rep in 1:nReps) {
+    cat("Running repetition:", rep, "\n")
+    cycleipop <- initial_parents
+    for (cycle in 1:nCycles) {
+      cat(" Running cycle:", cycle, "\n")
+      result <- run_cycle(cycleipop, crossPlan, maps, loci, cycle)
+      all_genetic_gains[rep, cycle] <- result$GeneticGain
+      all_delta_variances[rep, cycle] <- result$DeltaVariance
+      cycleipop <- result$cycleipop
+    }
+  }
+  
+  avg_genetic_gains <- apply(all_genetic_gains, 2, mean)
+  se_genetic_gains <- apply(all_genetic_gains, 2, sd) / sqrt(nReps)
+  avg_delta_variances <- apply(all_delta_variances, 2, mean)
+  se_delta_variances <- apply(all_delta_variances, 2, sd) / sqrt(nReps)
+  
+  data.frame(
+    Cycle = 1:nCycles,
+    AvgGeneticGain = avg_genetic_gains,
+    SEGeneticGain = se_genetic_gains,
+    AvgDeltaVariance = avg_delta_variances,
+    SEDeltaVariance = se_delta_variances
+  )
+}
+
+```
+
+#Run the analysis
+
+```{r}
+
+# Load requirements
+
+load("parents0.RData")
+load("CrossingPlans.RData")
+load("genMap.RData")
+load("phenotype.RData")
+load("SP.RData")
+
+
+resultsHH <- run_simulation(initial_parents = parents0, crossPlanHH, maps, loci = n, nReps = 50, nCycles = 10)
+resultsLL <- run_simulation(initial_parents = parents0, crossPlanLL, maps, loci = n, nReps = 50, nCycles = 10)
+resultsHL <- run_simulation(initial_parents = parents0, crossPlanHL, maps, loci = n, nReps = 50, nCycles = 10)
+
+```
+

@@ -1,0 +1,103 @@
+---
+title: "1. BaselineSimulation"
+author: "Henry Cordoba"
+output: html_document
+---
+
+### Simulation of genetic gain when parents are selected and --ONCE-- Parameters have been set
+
+Create a matrix where we will store the results of Genetic Gain and genetic values
+```{r}
+Results <- matrix(nrow = 2, ncol = 6)
+rownames(Results) <- c("GeneticGain", "DeltaVariance")
+colnames(Results) <- c("High_High", "SE_HxH", "Low_Low","SE_LxL", "High_Low","SE_HxL")
+
+PipelineData <- matrix(nrow = 7, ncol = 2)
+rownames(PipelineData) <- c("F1","F2","F3","F4","PYT","AYT", "Variety")
+colnames(PipelineData) <- c("PopSize", "GVs")
+
+```
+
+1. Define populations and replace phenotypes
+
+```{r}
+load("founderPop.RData")
+parents0 = newPop(founderPop, simParam = SP)
+parents0@pheno <- phenotype
+
+save(parents0, file="parents0.SY.RData")
+
+load("parents0.SY.RData")
+
+```
+
+# crossing schemes
+
+2. Define crossing scheme 1
+
+``` {r}
+# before doing the crosses, define the crossing plan: A matrix with 2 column (Female x Male) -- change according to the id number.
+
+#parents@iid
+crossPlanHH <- matrix(nrow = 20, ncol = 2)
+colnames(crossPlanHH) <- c("Parent1", "Parent2")
+
+#High x High Mutations parents
+
+crossPlanHH[,1] <- c(5,217,5,266,5,181,229,181,326,217,266,217,229,326,266)
+crossPlanHH[,2] <- c(181,5,229,5,326,217,181,266,181,229,217,326,266,229,326)
+
+### BASED ON GENETIC LOAD
+
+crossPlanHH[,1] <- c(1,2,3,4,9,10,11,18,22,26,27,28,29,30,33,36,37,38,39,40)
+crossPlanHH[,2] <- c(10,38,26,40,3,33,37,39,28,30,29,18,2,4,11,22,36,9,1,27)
+
+
+
+```
+
+3. when changing the crossing plan - 2
+
+```{r}
+crossPlanLL <- matrix(nrow = 20, ncol = 2)
+colnames(crossPlanLL) <- c("Parent1", "Parent2")
+
+# Low x Low mutations parents
+
+crossPlanLL[,1] <- c(78,101,78,142,78,99,133,99,99,101,142,101,142,133,286)
+crossPlanLL[,2] <- c(99,78,133,78,286,101,99,142,286,133,101,286,133,286,142)
+
+
+### BASED ON GENETIC LOAD
+
+crossPlanLL[,1] <- c(5,6,7,8,12,13,14,15,16,17,19,20,21,23,24,25,31,32,34,35)
+crossPlanLL[,2] <- c(31,21,15,13,19,20,32,12,8,5,6,17,35,25,14,24,16,23,7,34)
+
+```
+
+Crossing plan - 3
+
+```{r}
+crossPlanHL <- matrix(nrow = 20, ncol = 2)
+colnames(crossPlanHL) <- c("Parent1", "Parent2")
+
+# High x Low mutations parents
+
+crossPlanHL[,1] <- c(55,63,78,92,99,101,5,181,217,229,326,266)
+crossPlanHL[,2] <- c(5,181,217,229,326,266,133,142,209,210,286,170)
+
+### BASED ON GENETIC LOAD
+
+crossPlanHL[,1] <- c(31,21,15,13,19,20,32,12,8,5,6,17,35,25,14,24,16,23,7,34)
+crossPlanHL[,2] <- c(1,2,3,4,9,10,11,18,22,26,27,28,29,30,33,36,37,38,39,40)
+
+```
+
+```{r}
+# Save crossingSchemes
+save(crossPlanHH, crossPlanHL, crossPlanLL, file = "CrossingPlans.RData")
+```
+
+
+##### Stop here, you created all the files. Go to next script to run all in loops ## 
+
