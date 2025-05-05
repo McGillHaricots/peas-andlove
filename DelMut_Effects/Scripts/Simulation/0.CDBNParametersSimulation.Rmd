@@ -1,0 +1,160 @@
+---
+title: "Simulation_AlphaSim"
+author: "Henry Cordoba"
+output: html_document
+---
+
+## Simulation Parameters
+
+### Establish founder population (parents).
+
+Usually these parameters are set for the simulated population. But I will create that population from the genotypic data. The genotypic data {0,1,2} needs to be transformed into haplotypes before handling it to AlphaSim.
+
+```{r}
+suppressMessages(library(data.table))
+suppressMessages(library(dplyr))
+suppressMessages(library(AlphaSimR))
+
+```
+Haplotypes (per chrm) is a matrix (n x m) where columns n are the individuals and m the markers. 
+if INBRED= FALSE, the haplotypes need to be created with a custom function
+If INBRED=TRUE, the columns must match the number of individuals. So we will simulate the cross later instead of subseting the genotypes 
+
+```{r}
+
+# Load total genotype matrix
+geno.total <- as.data.frame(fread("genotypes/318_MTSIpheno_Filter_150Ct_MAF5per_CDBN_001_fillin_names_QC_impute.Numeric.raw"))
+rownames(geno.total) <- geno.total$IID
+geno.total <- geno.total[,-c(1:6)]
+colnames(geno.total) <- gsub("_[A-Z]$", "", colnames(geno.total))
+
+AndeanMap<-fread("../06. MAGIC_genetic_map.txt")
+
+geno.total<- geno.total[,colnames(geno.total) %in% AndeanMap$SNP]
+geno.total$taxa <- rownames(geno.total)
+
+snps=as.data.frame(colnames(geno.total))
+fwrite(snps,"SnpsInGenMap_CDBN.txt", sep = "\t", col.names = F, row.names = F)
+
+# Haplotypes need to be split per chromosome and put in a list
+
+#Initialize an empty list to store the haplotypes
+
+genotypes <- list()
+
+# Loop through each chromosome (from 1 to 11)
+for (chr in 1:11) {
+  # Create a pattern to match columns for the current chromosome
+  pattern <- paste0("S", sprintf("%02d", chr), "_")
+  
+  # Select the Taxa column and the marker columns for the current chromosome
+  chr_data <- geno.total %>%
+    select(taxa, starts_with(pattern))
+  
+  # Convert the data frame to a matrix and set the row names
+  chr_matrix <- as.matrix(chr_data[,-1])
+  rownames(chr_matrix) <- chr_data$taxa
+  
+  # Add the matrix to the haplotypes list
+  genotypes[[chr]] <- chr_matrix
+}
+
+```
+
+################################
+# Genetic map previously reported
+################################
+
+```{r}
+
+AndeanMap<-fread("../06. MAGIC_genetic_map.txt")
+AndeanMap<-AndeanMap[AndeanMap$SNP %in% colnames(geno.total),]
+
+chr01<-AndeanMap[AndeanMap$CHROM == 1, 6]
+chr02<-AndeanMap[AndeanMap$CHROM == 2, 6]
+chr03<-AndeanMap[AndeanMap$CHROM == 3, 6]
+chr04<-AndeanMap[AndeanMap$CHROM == 4, 6]
+chr05<-AndeanMap[AndeanMap$CHROM == 5, 6]
+chr06<-AndeanMap[AndeanMap$CHROM == 6, 6]
+chr07<-AndeanMap[AndeanMap$CHROM == 7, 6]
+chr08<-AndeanMap[AndeanMap$CHROM == 8, 6]
+chr09<-AndeanMap[AndeanMap$CHROM == 9, 6]
+chr10<-AndeanMap[AndeanMap$CHROM == 10, 6]
+chr11<-AndeanMap[AndeanMap$CHROM == 11, 6]
+
+chr01<- as.numeric(chr01$Geneticposition)
+chr02<- as.numeric(chr02$Geneticposition)
+chr03<- as.numeric(chr03$Geneticposition)
+chr04<- as.numeric(chr04$Geneticposition)
+chr05<- as.numeric(chr05$Geneticposition)
+chr06<- as.numeric(chr06$Geneticposition)
+chr07<- as.numeric(chr07$Geneticposition)
+chr08<- as.numeric(chr08$Geneticposition)
+chr09<- as.numeric(chr09$Geneticposition)
+chr10<- as.numeric(chr10$Geneticposition)
+chr11<- as.numeric(chr11$Geneticposition)
+
+maps <- list(chr01,chr02,chr03, chr04, chr05, chr06, chr07, chr08, chr09,chr10, chr11)
+
+save(maps, file = "genMap_CDBN_based.on.06.MAGIC_andean.Reported.ListChr.RData")
+
+```
+
+Create Pop with the genotypes and maps
+
+```{r}
+load("genMap_VEF.ListChr.RData")
+
+founderPop <- newMapPop(genMap = maps , haplotypes = genotypes, inbred = T, ploidy = 2)
+
+```
+
+Simulate the Phenotype and define parameters
+
+```{r}
+phenotype <- fread("phenotypes/CDBN_SY.MTSI.EBLUPS.txt", sep = "\t")
+phenotype <- as.data.frame(phenotype %>% select(Taxa, SY_BLUP))
+rownames(phenotype)<-phenotype$Taxa
+pheMean <- mean(phenotype$SY_BLUP, na.rm=T)
+phenotype <- phenotype %>% dplyr::mutate(SY_BLUP = ifelse(is.na(SY_BLUP), pheMean, SY_BLUP))
+phenotype <- phenotype[,-1]
+
+phenotype <- as.matrix(phenotype)
+
+save(phenotype, file="phenotype_SY.RData")
+
+```
+
+```{r}
+
+# to estimate a number the number of loci I defined the segregating markers between two parents
+
+geno.mat <- geno.total
+rownames(geno.mat) <- geno.mat$taxa
+geno.mat <- geno.mat[, -1]
+
+first_indiv <- geno.mat[1, ]
+other_inds <- geno.mat[-1, ]
+
+# Calculate number of loci differences row-wise:
+diff_first_vs_others <- apply(other_inds, 1, function(x) sum(x != first_indiv, na.rm = TRUE))
+
+# Add names for clarity
+diff_first_vs_others <- data.frame(
+  Individual = rownames(other_inds),
+  Differences = diff_first_vs_others
+)
+# define other parameters
+
+mean<- mean(phenotype)
+totloci<- 70
+loci<-422/11
+loci<-33 # Min number seg. loci
+
+SP<-SimParam$new(founderPop)
+SP$addTraitA(loci, mean = mean)
+SP$setVarE(H2=0.25)
+
+save(SP, file="SP.CDBN.RData")
+
+```
