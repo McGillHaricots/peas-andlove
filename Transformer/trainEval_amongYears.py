@@ -120,7 +120,7 @@ for epoch in range(50):
             predictions.extend(preds.numpy())
             true_vals.extend(batch_y.numpy())
                             
-    avg_val_loss = val_loss / len(test_loader)
+    avg_val_loss = val_loss / len(valid_loader)
     val_losses.append(avg_val_loss)        
     val_accuracy, _ = pearsonr(predictions, true_vals)
     val_accuracies.append(val_accuracy)
