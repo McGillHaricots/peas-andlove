@@ -167,6 +167,8 @@ corr, _ = pearsonr(yTest, y_pred)
 
 corr
 
+"""ridge regression control testing among locations""
+
 traits = ["SW","SY","DM","DF"]
 
 for trait in traits:
