@@ -2,5 +2,5 @@
 
 - The AlphaSim simualtion is devided into three scripts:
     - Parameter Simulation
-    - Creation of baseline elements (population, crossing schemes, etc)
+    - Creation of baseline elements (population, crossing schemes, etc.)
     - Simulation in loops with number of itterations and cycles
