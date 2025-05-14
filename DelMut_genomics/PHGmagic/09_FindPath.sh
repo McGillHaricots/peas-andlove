@@ -1,13 +1,4 @@
 #!/bin/bash
-#SBATCH --account=def-haricots
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=40
-#SBATCH --mem=92G
-#SBATCH --time=5:00:00
-#SBATCH --mail-user=henry.cordoba@mail.mcgill.ca
-#SBATCH --mail-type=ALL
-
 
 
 # load modules 
