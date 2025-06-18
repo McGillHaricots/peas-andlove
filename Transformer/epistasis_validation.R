@@ -59,5 +59,7 @@ epistasis <- IIIVmrMLM(
   fileGen = "/lustre06/project/6044053/ich/CDBN/BLB_19_geno",  # no extension here!
   filePhe = "/lustre06/project/6044053/ich/CDBN/BLB_19_pheno_IDreset.csv",
   method = "Epistasis",
-  trait = 1
+  trait = 1,
+  SearchRadius = c(0,1),
+  svpal = c(0.05,0.05)
 )
