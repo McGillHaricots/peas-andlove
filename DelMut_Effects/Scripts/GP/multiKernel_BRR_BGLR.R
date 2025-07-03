@@ -16,10 +16,10 @@ colnames(markers) <- gsub("_[A-Z]$", "", colnames(markers))
 
 # Load phenotypic data
 pheno <- fread("phenotypes/DF.WYPO.EBLUPS.txt")
-pheno$Taxa<-as.factor(pheno$Taxa)
-n.pheno <- pheno$Taxa
+pheno$name<-as.factor(pheno$name)
+n.pheno <- pheno$name
 # ----
-pheno <- pheno %>% select(c(Taxa,DF_BLUP))
+pheno <- pheno %>% select(c(name,DF_BLUP))
 
 # Filter genotypes with phenotypes
 markers <- markers[markers$IID %in% n.pheno,]
@@ -38,8 +38,8 @@ snp_info <- data.frame(SNP = colnames(markers))
 snp_info <- merge(snp_info, conservation_scores, by = "SNP")
 
 # Split SNPs into two groups
-high_cons_snps <- snp_info$SNP[snp_info$weight > 0]
-low_cons_snps <- setdiff(colnames(markers), high_cons_snps)
+score_snps <- snp_info$SNP[snp_info$weight > 0]
+NoScore_snps <- setdiff(colnames(markers), score_snps)
 
 # Define loop parameters
 num_markers <- 7000  # Subset size
@@ -48,18 +48,17 @@ nt <- n * 0.3  # 30% test set
 runs <- 10
 
 # Storage for results
-H2.val <- matrix(NA, nrow = runs, ncol = 10)
-H2.SE <- matrix(NA, nrow = runs, ncol = 10)
+
 corr.val <- matrix(NA, nrow = runs, ncol = 10)
 
 for (i in 1:10) {  # Loop over 10 different marker subsets
   set.seed(i)
-  high_cons_snps <- sample(high_cons_snps, size = num_markers/2 )
-  low_cons_snps <- sample(low_cons_snps, size = length(high_cons_snps)) # subset markers with no score
+  score_snps <- sample(score_snps, size = num_markers/2 )
+  NoScore_snps <- sample(NoScore_snps, size = length(score_snps)) # subset markers with no score
   
   # Subset genotype matrix
-  M_high <- markers[, high_cons_snps, drop = FALSE]
-  M_low <- markers[, low_cons_snps, drop = FALSE]
+  M_score <- markers[, score_snps, drop = FALSE]
+  M_NoScore <- markers[, NoScore_snps, drop = FALSE]
   
   # Loop for prediction
   for (j in 1:runs) {
@@ -70,14 +69,15 @@ for (i in 1:10) {  # Loop over 10 different marker subsets
     yNA[tst] <- NA
     
     model <- BGLR(y = yNA, ETA = list(
-      list(X = M_high, model = "BRR"),
-      list(X = M_low, model = "BRR")), nIter = 12000, burnIn = 2000, verbose = FALSE)
+      list(X = M_score, model = "BRR"),
+      list(X = M_NoScore, model = "BRR")), nIter = 12000, burnIn = 2000, verbose = FALSE)
     
     
     # Predictions
-    preds <- model$yHat[tst]
-    
-    corr.val[j, i] <- cor(pheno$DF_BLUP[tst], preds, use = "complete.obs")
+    preds <- predict(model, classify = "name")$pvals
+    preds <- preds[preds$name %in% pheno$name[tst], ]
+    merged <- merge(preds, pheno[tst, c("name", "DF_BLUE")], by = "name")
+    corr.val[j, i] <- cor(merged$DF_BLUE, merged$predicted.value, use = "complete.obs")    
   }
 }
 
