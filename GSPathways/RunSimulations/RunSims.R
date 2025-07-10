@@ -43,7 +43,7 @@ founderPop = newMapPop(genMap,
                        haplotypes, 
                        inbred = FALSE, 
                        ploidy = 2L)
-defineTraitAEG(4,3.6,0.14) # nQtl per chr, mean,heritability
+defineTraitAEG(4,8.8,0.14) # nQtl per chr, mean,heritability
 
 ## CYCLE 0 TO BUILD INITIAL TRAINING POP = Phenotypic Selection
 
