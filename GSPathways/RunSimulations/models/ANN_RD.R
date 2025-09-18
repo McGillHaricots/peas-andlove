@@ -44,10 +44,10 @@ inputs = layer_input(shape=(ncol(X_train)))
 predictions <- inputs %>% 
   layer_dense(units = ncol(X_train), activation = 'relu') %>% 
   layer_batch_normalization(momentum=0.1,epsilon=0.001,center=TRUE,scale=TRUE) %>%
-  layer_dense(units = ncol(X_train), activation = 'relu') %>% 
-  layer_dropout(rate = 0.1) %>%
-  layer_dense(units = ncol(X_train), activation = 'relu') %>% 
-  layer_dropout(rate = 0.1) %>%
+  layer_dense(units = ncol(X_train)/2, activation = 'relu') %>% 
+  layer_dropout(rate = 0.05) %>%
+  layer_dense(units = ncol(X_train)/2, activation = 'relu') %>% 
+  layer_dropout(rate = 0.05) %>%
   layer_dense(units = 1)
 
 # create and compile model 
