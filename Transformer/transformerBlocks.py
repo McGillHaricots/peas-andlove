@@ -1,9 +1,10 @@
 
+
 # Multi-Head Attention
 class MultiHeadAttention(nn.Module):
-    def __init__(self, d_model, num_heads,feature_weights):
+    def __init__(self, d_model, num_heads, dropout=0.1):
         super(MultiHeadAttention, self).__init__()
-        assert d_model % num_heads == 0, "d_model must be divisible by num_heads"
+        assert d_model % num_heads == 0
 
         self.d_model = d_model
         self.num_heads = num_heads
@@ -14,40 +15,46 @@ class MultiHeadAttention(nn.Module):
         self.W_v = nn.Linear(d_model, d_model)
         self.W_o = nn.Linear(d_model, d_model)
 
-        self.feature_weights = feature_weights
+        self.attn_dropout = nn.Dropout(dropout)
 
-    def scaled_dot_product_attention(self, Q, K, V):
+    def scaled_dot_product_attention(self, Q, K, V, feature_weights):
+        # Q, K, V: [B, H, S, d_k]
         attn_scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
 
-        # Ensure feature_weights has the shape [batch_size, num_heads, seq_length, 1]
-        feature_weights_expanded = self.feature_weights.unsqueeze(1).unsqueeze(-1)  # Shape: [batch_size, 1, seq_length, 1]
-        feature_weights_expanded = feature_weights_expanded.expand(-1, self.num_heads, -1, -1)  # Shape: [batch_size, num_heads, seq_length, 1]
-    
-        # Apply the feature weights to the attention scores
-        attn_scores = attn_scores * feature_weights_expanded
+        if feature_weights is not None:
+            # [B, S] -> [B, 1, S, 1] -> [B, H, S, 1]
+            fw = feature_weights.unsqueeze(1).unsqueeze(-1)
+            fw = fw.expand(-1, self.num_heads, -1, -1)
 
-        output = torch.matmul(attn_scores, V)
-        
+            # Option 1: bias attention scores (safer than multiply)
+            attn_scores = attn_scores + fw
+
+            # Option 2: also weight values
+            V = V * fw
+
+        attn_probs = torch.softmax(attn_scores, dim=-1)
+        attn_probs = self.attn_dropout(attn_probs)
+
+        output = torch.matmul(attn_probs, V)
         return output
 
     def split_heads(self, x):
-        batch_size, seq_length, d_model = x.size()
-        return x.view(batch_size, seq_length, self.num_heads, self.d_k).transpose(1, 2)
+        B, S, _ = x.size()
+        return x.view(B, S, self.num_heads, self.d_k).transpose(1, 2)
 
     def combine_heads(self, x):
-        batch_size, _, seq_length, d_k = x.size()
-        return x.transpose(1, 2).contiguous().view(batch_size, seq_length, self.d_model)
+        B, H, S, d_k = x.size()
+        return x.transpose(1, 2).contiguous().view(B, S, self.d_model)
 
-    def forward(self, Q, K, V):
+    def forward(self, Q, K, V, feature_weights=None):
         Q = self.split_heads(self.W_q(Q))
         K = self.split_heads(self.W_k(K))
         V = self.split_heads(self.W_v(V))
 
-        attn_output = self.scaled_dot_product_attention(Q, K, V)
+        attn_output = self.scaled_dot_product_attention(Q, K, V, feature_weights)
         attn_output = self.combine_heads(attn_output)
-        output = self.W_o(attn_output)
 
-        return output
+        return self.W_o(attn_output)
 
 # Position-Wise Feed Forward
 class PositionWiseFeedForward(nn.Module):
@@ -75,21 +82,30 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         return x + self.pe[:, :x.size(1)]
 
+
+
 # Encoder Layer
 class EncoderLayer(nn.Module):
-    def __init__(self, d_model, num_heads, d_ff, dropout,feature_weights):
-        super(EncoderLayer, self).__init__()
-        self.self_attn = MultiHeadAttention(d_model, num_heads,feature_weights)
+    def __init__(self, d_model, num_heads, d_ff, dropout):
+        super().__init__()
+
+        self.self_attn = MultiHeadAttention(d_model, num_heads, dropout)
         self.feed_forward = PositionWiseFeedForward(d_model, d_ff)
+
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
+
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x):
-        attn_output = self.self_attn(x, x, x)
+    def forward(self, x, feature_weights=None):
+        # Self-attention
+        attn_output = self.self_attn(x, x, x, feature_weights)
         x = self.norm1(x + self.dropout(attn_output))
+
+        # Feed-forward
         ff_output = self.feed_forward(x)
         x = self.norm2(x + self.dropout(ff_output))
+
         return x
 
 
@@ -114,31 +130,41 @@ def focalLoss(beta,gamma,batch_y,estimations):
 
     return loss.mean()
 
-# Transformer Model
-
+# Transformer Model 
 class Transformer(nn.Module):
-    def __init__(self, src_vocab_size,tgt_vocab_size, d_model, num_heads, num_layers, d_ff, max_seq_length, dropout,feature_weights,pooling_weights):
-        super(Transformer, self).__init__()
-        
+    def __init__(self, src_vocab_size, tgt_vocab_size, d_model,
+                 num_heads, num_layers, d_ff, max_seq_length,
+                 dropout):
+        super().__init__()
+
         self.encoder_embedding = nn.Embedding(src_vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
-        self.encoder_layers = nn.ModuleList([EncoderLayer(d_model, num_heads, d_ff, dropout,feature_weights) for _ in range(num_layers)])
+
+        self.encoder_layers = nn.ModuleList([
+            EncoderLayer(d_model, num_heads, d_ff, dropout)
+            for _ in range(num_layers)
+        ])
+
         self.fc = nn.Linear(d_model, tgt_vocab_size)
         self.dropout = nn.Dropout(dropout)
-        self.feature_weights = feature_weights[:, :max_seq_length]  
-        self.pooling_weights = pooling_weights[:, :max_seq_length]
 
-    def forward(self, src):
+    def forward(self, src, feature_weights=None, pooling_weights=None):
+        x = self.encoder_embedding(src)
+        x = self.dropout(self.positional_encoding(x))
 
-        src_embedded = self.dropout(self.positional_encoding(self.encoder_embedding(src)))
-        
-        for enc_layer in self.encoder_layers:
-            enc_output = enc_layer(src_embedded)
-        
-        weighted_output = enc_output * self.pooling_weights.unsqueeze(-1)
-        pooled_output = weighted_output.mean(dim=1)
-        output = self.fc(pooled_output)
+        for layer in self.encoder_layers:
+            x = layer(x, feature_weights)
+
+        # Optional weighted pooling
+        if pooling_weights is not None:
+            pw = pooling_weights.unsqueeze(-1)
+            x = x * pw
+
+        pooled = x.mean(dim=1)
+        output = self.fc(pooled)
+
         return output.squeeze(-1)
+
 
 def getWeights(xTrain,yTrain,xTest,yTest,batch_size):
 
